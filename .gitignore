@@ -33,6 +33,6 @@ build/
 .vscode/
 
 ### Additional ###
-src/main/java/ru/yandex/practicum/filmorate/utility/test.java
+src/main/java/ru/yandex/practicum/filmorate/test.java
 
 
