@@ -32,7 +32,6 @@ build/
 ### VS Code ###
 .vscode/
 
-### Additional ###
-src/main/java/ru/yandex/practicum/filmorate/ImportantTest.java
+
 
 
