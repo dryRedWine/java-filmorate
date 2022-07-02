@@ -33,6 +33,6 @@ build/
 .vscode/
 
 ### Additional ###
-src/main/java/ru/yandex/practicum/utility/test.java
+java/ru/yandex/practicum/utility/test.java
 
 
