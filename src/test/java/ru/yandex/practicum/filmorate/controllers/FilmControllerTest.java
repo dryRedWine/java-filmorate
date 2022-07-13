@@ -6,22 +6,19 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
-import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.utility.OutOfSizeString;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Positive;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
 class FilmControllerTest {
@@ -46,11 +43,11 @@ class FilmControllerTest {
         film2 = new Film("Bad Santa 2", "Something...", LocalDate.parse("1967-03-25"), 120);
     }
 
-//    @AfterAll
-//    public static void afterAll() {
-//        violations.clear();
-//        log.info("teardown");
-//    }
+    @AfterAll
+    public static void afterAll() {
+        violations.clear();
+        log.info("teardown");
+    }
 
     /**
      * Проверка блока create
@@ -124,17 +121,6 @@ class FilmControllerTest {
             assertEquals(violation.getMessage(), "Description cannot be empty or null");
         }
         log.info("Test: ifDescriptionIsNull_FilmValidationFails");
-    }
-
-    @Test
-    void ifDescriptionOutOfSize_FilmValidationFails() {
-        film1.setDescription(OutOfSizeString.text);
-        violations = validator.validate(film1);
-        assertEquals(violations.size(), 1);
-        for (ConstraintViolation<Film> violation : violations) {
-            assertEquals(violation.getMessage(), "Description must be between 1 and 200 characters");
-        }
-        log.info("Test: ifDescriptionOutOfSize_FilmValidationFails");
     }
 
     @Test

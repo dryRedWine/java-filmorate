@@ -43,8 +43,6 @@ public class UserController extends CommonController<User> {
     private void AdditionalCheck(User user) throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
         if (user.getBirthday().isAfter(LocalDate.now()))
             throw new NotBurnYetException("Пользователь еще не родился :)");
-        if (user.getLogin().contains(" "))
-            throw new IllegalLoginException("В логине не может содержаться пробел!");
         if (user.getName().isBlank()) { // проверка имени на пустоту
             user.setName(user.getLogin());
             log.debug("Имени присвоено значение логина");

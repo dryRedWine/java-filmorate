@@ -21,6 +21,7 @@ public class User {
     @Email(message = "Email is mandatory")
     private String email;
 
+    @Pattern(regexp = "^\\S*$", message = "В логине не может содержаться пробел!")
     @NotBlank(message = "login cannot be null or empty") // NotBlank сам проверяет на null
     private String login;
 

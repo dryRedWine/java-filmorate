@@ -11,7 +11,7 @@
 	<groupId>ru.yandex.practicum</groupId>
 	<artifactId>filmorate</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>filmorate</name>
+	<name>java-filmorate</name>
 	<description>new app about films research</description>
 	<properties>
 		<java.version>11</java.version>
