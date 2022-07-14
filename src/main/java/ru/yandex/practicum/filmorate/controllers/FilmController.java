@@ -7,13 +7,11 @@ import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
 import ru.yandex.practicum.filmorate.exceptions.NotBurnYetException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping("/films")
@@ -22,20 +20,19 @@ public class FilmController extends CommonController<Film> {
 
     private static final LocalDate DATE = LocalDate.of(1895, 12, 28);
 
-    private final Set<Film> films = new HashSet<>();
+    private final Map<Integer, Film> films = new LinkedHashMap<>();
     private int filmId = 0;
 
     @Override
     @PostMapping
-    public Film create(@Valid @RequestBody Film film)
+    public @Valid Film create(@Valid @RequestBody Film film)
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
         if (film.getReleaseDate().isBefore(DATE))
             throw new IllegalArgumentException("Выбрана ложная дата релиза");
-        if (!films.contains(film)) {
+        if (!films.containsValue(film)) {
             film.setId(++filmId);
-            idCheckForPost(film);
             log.info("Данный фильм добавлен");
-            films.add(film);
+            films.put(film.getId(), film);
         } else {
             log.warn("Данный фильм уже добавлен");
             throw new AlreadyExistException("Данный фильм уже добавлен");
@@ -43,44 +40,21 @@ public class FilmController extends CommonController<Film> {
         return film;
     }
 
-    private void idCheckForPost(Film film) {
-        for (Film temp : films) {
-            if (film.getId().equals(temp.getId())) {
-                film.setId(++filmId);
-                idCheckForPost(film);
-            }
-        }
-        log.debug("id успешно установлен");
-    }
-
-    private void idCheckForPut(Film film) {
-        for (Film temp : films) {
-            if (film.equals(temp) && !film.getId().equals(temp.getId())) {
-                log.info("Неверно указан id");
-                throw new IllegalArgumentException("Неверный id при обновлении");
-            } else if (!film.equals(temp) && film.getId().equals(temp.getId())) {
-                log.info("Этот id уже занят");
-                throw new IllegalArgumentException("Неверный id при обновлении");
-            }
-
-        }
-        log.info("id успешно обновлен!");
-    }
-
     @Override
     @PutMapping
-    public Film update(@Valid @RequestBody Film film) {
+    public @Valid Film update(@Valid @RequestBody Film film) {
+        if (film.getId() < 1)
+            throw new IllegalArgumentException("id не мб меньше 1");
         if (film.getReleaseDate().isBefore(DATE))
             throw new IllegalArgumentException("Выбрана ложная дата релиза");
-        if (!films.contains(film)) {
+        if (!films.containsValue(film)) {
             if (film.getId() == null)
                 film.setId(++filmId);
-            idCheckForPut(film);
             log.info("Данный фильм добавлен");
-            films.add(film);
+            films.put(film.getId(), film);
         } else {
             log.info("Данные о фильме обновлены");
-            films.add(film);
+            films.put(film.getId(), film);
         }
         return film;
     }
@@ -89,23 +63,6 @@ public class FilmController extends CommonController<Film> {
     @GetMapping
     public List<Film> get() {
         log.info("Текущее количество добавленных фильмов: {}", films.size());
-        return sort(films);
-    }
-
-    private List<Film> sort(Set<Film> set) {
-        List<Film> list = new ArrayList<>(set);
-        for (int i = 0; i < list.size() - 1; i++) {
-            int minIndex = i;
-            int minIndexId = list.get(minIndex).getId();
-            for (int j = i + 1; j < list.size(); j++) {
-                int jId = list.get(j).getId();
-                if (jId < minIndexId)
-                    minIndex = j;
-            }
-            Film temp = list.get(minIndex);
-            list.set(minIndex, list.get(i));
-            list.set(i, temp);
-        }
-        return list;
+        return new ArrayList<>(films.values());
     }
 }
