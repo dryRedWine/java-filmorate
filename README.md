@@ -1,2 +1,2 @@
 # java-filmorate
-Template repository for Filmorate project.
+Я сильно отстал из-за сессии, но надеюсь у меня все хорошо, все хорошо протестировал
