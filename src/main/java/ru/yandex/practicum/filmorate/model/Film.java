@@ -1,5 +1,7 @@
 package ru.yandex.practicum.filmorate.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +12,8 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -21,7 +25,7 @@ public class Film {
     // а в случае с данной аннотацией должен возвращаться 400.
     // Но, к счастью, в других тестах есть и 400, и 500))))
 //    @Positive(message = "id can be only positive")
-    private Integer id;
+    private Long id;
 
     @NotBlank(message = "Name cannot be empty or null")
     private String name;
@@ -37,11 +41,30 @@ public class Film {
     @Positive(message = "Duration can be only positive")
     private Integer duration;
 
+    private final Set<Long> likes;
+
+    public Set<Long> getLikes() {
+        return likes;
+    }
+
+    public long returnLikesCount() {
+        return likes.size();
+    }
+
+    public void addLike(Long userId) {
+        likes.add(userId);
+    }
+
+    public void deleteLike(Long userId) {
+        likes.remove(userId);
+    }
+
     public Film(String name, String description, LocalDate releaseDate, Integer duration) {
         this.name = name;
         this.description = description;
         this.releaseDate = releaseDate;
         this.duration = duration;
+        likes = new HashSet<>();
     }
 
 }

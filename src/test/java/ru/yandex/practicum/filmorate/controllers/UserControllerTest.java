@@ -1,10 +1,14 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
-import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
+import ru.yandex.practicum.filmorate.storage.InMemoryUserStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -22,6 +26,8 @@ class UserControllerTest {
     private static UserController userController;
     private static User user1;
     private static User user2;
+
+    private static User user3;
     private static Validator validator;
     private static Set<ConstraintViolation<User>> violations;
 
@@ -34,9 +40,10 @@ class UserControllerTest {
 
     @BeforeEach
     void beforeEach() {
-        userController = new UserController();
+        userController = new UserController(new UserService(new InMemoryUserStorage()));
         user1 = new User("dolore", "Nick Name", "mail@mail.ru", LocalDate.parse("1946-08-20"));
         user2 = new User("dolores", "", "mail@yandex.ru", LocalDate.parse("1956-08-20"));
+        user3 = new User("dolres", "gfgfh", "mail@bk.ru", LocalDate.parse("1966-08-20"));
     }
 
     @AfterAll
@@ -52,7 +59,7 @@ class UserControllerTest {
     @Test
     void addUserTest() {
         User resultUser = userController.create(user1);
-        user1.setId(1);
+        user1.setId(1L);
         assertEquals(user1.getId(), resultUser.getId());
         assertEquals(user1.getName(), resultUser.getName());
         assertEquals(user1.getLogin(), resultUser.getLogin());
@@ -85,7 +92,7 @@ class UserControllerTest {
     @Test
     void addUserWithoutNameTest() {
         User resultUser = userController.create(user2);
-        user2.setId(1);
+        user2.setId(1L);
         assertEquals(user2.getId(), resultUser.getId());
         assertEquals(user2.getLogin(), resultUser.getName());
         assertEquals(user2.getLogin(), resultUser.getLogin());
@@ -101,8 +108,10 @@ class UserControllerTest {
     @Test
     void negativeAddUserLoginWithWhitespace() {
         User user = new User("dolore fghfjg", "Nick Name", "mail@mail.ru", LocalDate.parse("1946-08-20"));
-        final IllegalLoginException e = assertThrows(IllegalLoginException.class, () -> userController.create(user));
-        assertEquals(e.getMessage(), "В логине не может содержаться пробел!");
+        violations = validator.validate(user);
+        for (ConstraintViolation<User> violation : violations) {
+            assertEquals(violation.getMessage(), "В логине не может содержаться пробел!");
+        }
         log.info("Test: negativeAddUserLoginWithWhitespace");
     }
 
@@ -110,8 +119,9 @@ class UserControllerTest {
     void negativeAddUserBlankLogin() {
         User user = new User("  ", "Nick Name", "email@mail.ru", LocalDate.parse("1946-08-20"));
         violations = validator.validate(user);
+        assertEquals(violations.size(), 1);
         for (ConstraintViolation<User> violation : violations) {
-            assertEquals(violation.getMessage(), "login cannot be null or empty");
+            assertEquals(violation.getMessage(), "В логине не может содержаться пробел!");
         }
         log.info("Test: negativeAddUserBlankLogin");
     }
@@ -120,8 +130,9 @@ class UserControllerTest {
     void ifEmailIsNull_loginValidationFails() {
         User user = new User(null, "Nick Name", "email@mail.ru", LocalDate.parse("1946-08-20"));
         violations = validator.validate(user);
+        assertEquals(violations.size(), 1);
         for (ConstraintViolation<User> violation : violations) {
-            assertEquals(violation.getMessage(), "login cannot be null or empty");
+            assertEquals(violation.getMessage(), "login cannot be null");
         }
         log.info("Test: ifEmailIsNull_loginValidationFails");
     }
@@ -191,7 +202,7 @@ class UserControllerTest {
 
     @Test
     void updateUserTest(){
-        user1.setId(1);
+        user1.setId(1L);
         User resultUser = userController.update(user1);
         assertEquals(user1.getId(), resultUser.getId());
         assertEquals(user1.getName(), resultUser.getName());
@@ -204,7 +215,7 @@ class UserControllerTest {
     @Test
     void duplicateUpdateUserTest(){
         userController.create(user1);
-        user1.setId(1);
+        user1.setId(1L);
         User resultUser = userController.update(user1);
         assertEquals(user1.getId(), resultUser.getId());
         assertEquals(user1.getName(), resultUser.getName());
@@ -212,6 +223,20 @@ class UserControllerTest {
         assertEquals(user1.getEmail(), resultUser.getEmail());
         assertEquals(user1.getBirthday(), resultUser.getBirthday());
         log.info("Test: duplicateUpdateUserTest");
+    }
+
+    /**
+     * Проверка блока put
+     */
+
+    @Test
+    void addNewFriendTest(){
+        userController.create(user1);
+        userController.create(user2);
+        userController.addNewFriendById(user1.getId(), user2.getId());
+        List<Long> listOfFriends = new ArrayList<>(user1.getFriends());
+        assertEquals(listOfFriends.get(0), 2);
+        log.info("Test: addNewFriendTest - отработан");
     }
 
     /**
@@ -224,14 +249,60 @@ class UserControllerTest {
         userController.create(user2);
         List<User> tempList = new ArrayList<>(userController.get());
         assertEquals(tempList.size(), 2);
+        log.info("Test: getAllUsersTest - отработан");
     }
 
     @Test
     void getAllUsersTestWithoutDuplicate(){
         userController.create(user1);
-        user1.setId(1);
+        user1.setId(1L);
         userController.update(user1);
         List<User> tempList = new ArrayList<>(userController.get());
         assertEquals(tempList.size(), 1);
+        log.info("Test: getAllUsersTestWithoutDuplicate - отработан");
+    }
+
+    @Test
+    void returnListOfFriendsTest(){
+        userController.create(user1);
+        userController.create(user2);
+        userController.addNewFriendById(user1.getId(), user2.getId());
+        List<User> tempList = new ArrayList<>(userController.returnListOfFriends(user1.getId()));
+        assertEquals(tempList.size(), 1);
+        log.info("Test: returnListOfFriendsTest - отработан");
+    }
+
+    @Test
+    void getUserByIdTest(){
+        userController.create(user1);
+        userController.create(user2);
+        assertEquals(user2, userController.getUserById(2L));
+        log.info("Test: getUserByIdTest - отработан");
+    }
+
+    @Test
+    void returnListOfMutualFriendsTest(){
+        userController.create(user1);
+        userController.create(user2);
+        userController.create(user3);
+        userController.addNewFriendById(user1.getId(), user2.getId());
+        userController.addNewFriendById(user2.getId(), user3.getId());
+        List<User> tempList = new ArrayList<>(userController.getMutualFriendsList(user1.getId(), user3.getId()));
+        assertEquals(tempList.size(), 1);
+        log.info("Test: returnListOfMutualFriendsTest - отработан");
+    }
+
+    /**
+     * Проверка блока delete
+     */
+    @Test
+    void deleteFriendTest(){
+        userController.create(user1);
+        userController.create(user2);
+        userController.addNewFriendById(user1.getId(), user2.getId());
+        userController.deleteFriendById(user1.getId(), user2.getId());
+        List<User> tempList = new ArrayList<>(userController.returnListOfFriends(user1.getId()));
+        assertEquals(tempList.size(), 0);
+        log.info("Test: deleteFriendTest - отработан");
     }
 }

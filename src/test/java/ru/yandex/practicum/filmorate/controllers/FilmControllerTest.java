@@ -7,6 +7,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.service.FilmService;
+import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
@@ -14,6 +16,7 @@ import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -38,7 +41,7 @@ class FilmControllerTest {
 
     @BeforeEach
     void beforeEach() {
-        filmController = new FilmController();
+        filmController = new FilmController(new FilmService(new InMemoryFilmStorage()));
         film1 = new Film("Avengers", "Something...", LocalDate.parse("1967-03-25"), 100);
         film2 = new Film("Bad Santa 2", "Something...", LocalDate.parse("1967-03-25"), 120);
     }
@@ -56,7 +59,7 @@ class FilmControllerTest {
     @Test
     void addFilmTest() {
         Film resultFilm = filmController.create(film1);
-        film1.setId(1);
+        film1.setId(1L);
         assertEquals(film1.getId(), resultFilm.getId());
         assertEquals(film1.getName(), resultFilm.getName());
         assertEquals(film1.getDescription(), resultFilm.getDescription());
@@ -181,6 +184,7 @@ class FilmControllerTest {
     void ifReleaseDateIsBefore_1895_FilmValidationFails() {
         film1.setReleaseDate(LocalDate.parse("1800-01-10"));
         final IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () -> filmController.create(film1));
+        assertEquals(e.getMessage(), "Выбрана ложная дата релиза");
         log.info("Test: iifReleaseDateIsBefore_1895_FilmValidationFails");
     }
 
@@ -190,7 +194,7 @@ class FilmControllerTest {
 
     @Test
     void updateFilmTest() {
-        film1.setId(1);
+        film1.setId(1L);
         Film resultFilm = filmController.update(film1);
         assertEquals(film1.getId(), resultFilm.getId());
         assertEquals(film1.getName(), resultFilm.getName());
@@ -203,7 +207,7 @@ class FilmControllerTest {
     @Test
     void duplicateUpdateFilmTest() {
         filmController.create(film1);
-        film1.setId(1);
+        film1.setId(1L);
         Film resultFilm = filmController.update(film1);
         assertEquals(film1.getId(), resultFilm.getId());
         assertEquals(film1.getName(), resultFilm.getName());
@@ -211,6 +215,20 @@ class FilmControllerTest {
         assertEquals(film1.getReleaseDate(), resultFilm.getReleaseDate());
         assertEquals(film1.getDuration(), resultFilm.getDuration());
         log.info("Test: duplicateUpdateFilmTest");
+    }
+
+    /**
+     * Проверка блока put
+     */
+
+    @Test
+    void putLikeToFilm(){
+        filmController.create(film1);
+        filmController.putLikeToFilm(film1.getId(), 10L);
+        final  Set<Long> tempSet = new HashSet<>();
+        tempSet.add(10L);
+        assertEquals(film1.getLikes(), tempSet);
+        log.info("Test: putLikeToFilm - отработан");
     }
 
     /**
@@ -228,10 +246,59 @@ class FilmControllerTest {
     @Test
     void getAllFilmsTestWithoutDuplicate() {
         filmController.create(film1);
-        film1.setId(1);
+        film1.setId(1L);
         filmController.update(film1);
         List<Film> tempList = new ArrayList<>(filmController.get());
         System.out.println(tempList);
         assertEquals(tempList.size(), 1);
+    }
+
+    @Test
+    void getByUserId(){
+        filmController.create(film1);
+        filmController.create(film2);
+        assertEquals(film2, filmController.getFilmById(2L));
+        log.info("Test: getByUserId - отработан");
+    }
+
+    @Test
+    void getPopularFilms2(){
+        filmController.create(film1);
+        filmController.create(film2);
+        filmController.putLikeToFilm(film1.getId(), 10L);
+        filmController.putLikeToFilm(film2.getId(), 10L);
+        filmController.putLikeToFilm(film2.getId(), 11L);
+        filmController.putLikeToFilm(film2.getId(), 21L);
+        List<Film> result = filmController.getPopularFilms(2L);
+        List<Film> toEqual = new ArrayList<>(List.of(film2, film1));
+        assertEquals(result, toEqual);
+        log.info("Test: getPopularFilms2 - отработан");
+    }
+
+    @Test
+    void getPopularFilms10ButLessInStorage(){
+        filmController.create(film1);
+        filmController.create(film2);
+        filmController.putLikeToFilm(film1.getId(), 10L);
+        filmController.putLikeToFilm(film2.getId(), 10L);
+        filmController.putLikeToFilm(film2.getId(), 11L);
+        filmController.putLikeToFilm(film2.getId(), 21L);
+        List<Film> result = filmController.getPopularFilms(10L);
+        List<Film> toEqual = new ArrayList<>(List.of(film2, film1));
+        assertEquals(result, toEqual);
+        log.info("Test: getPopularFilms10ButLessInStorage - отработан");
+    }
+
+    /**
+     * Проверка блока delete
+     */
+
+    @Test
+    void deleteLikeFromFilm(){
+        filmController.create(film1);
+        filmController.putLikeToFilm(film1.getId(), 10L);
+        filmController.deleteLikeToFilm(film1.getId(), 10L);
+        assertEquals(film1.getLikes().size(), 0);
+        log.info("Test: deleteLikeFromFilm - отработан");
     }
 }

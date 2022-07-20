@@ -6,7 +6,7 @@ import lombok.ToString;
 
 import javax.validation.constraints.*;
 import java.time.LocalDate;
-import java.util.Objects;
+import java.util.*;
 
 @Setter
 @Getter
@@ -17,15 +17,33 @@ public class User {
     // а в случае с данной аннотацией должен возвращаться 400.
     // Но, к счастью, в других тестах есть и 400, и 500))))
 //    @Positive(message = "id can be only positive")
-    private Integer id;
+    private Long id;
     private String name;
+
+    private final Set<Long> friends;
+
+    public Set<Long> getFriends() {
+        return friends;
+    }
+
+    public long returnFriendsCount() {
+        return friends.size();
+    }
+
+    public void addNewFriend(Long userId) {
+        friends.add(userId);
+    }
+
+    public void deleteFriend(Long userId) {
+        friends.remove(userId);
+    }
 
     @NotNull(message = "Email cannot be null")
     @Email(message = "Email is mandatory")
     private String email;
 
-    @Pattern(regexp = "^\\S*$", message = "В логине не может содержаться пробел!")
-    @NotBlank(message = "login cannot be null or empty") // NotBlank сам проверяет на null
+    @Pattern(regexp = "^\\S+$", message = "В логине не может содержаться пробел!")
+    @NotNull(message = "login cannot be null") // NotBlank сам проверяет на null
     private String login;
 
 
@@ -39,6 +57,7 @@ public class User {
         this.login = login;
         this.birthday = birthday;
         this.name = name;
+        friends = new HashSet<>();
     }
 
 

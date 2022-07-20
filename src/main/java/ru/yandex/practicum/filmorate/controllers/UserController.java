@@ -1,72 +1,81 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
 import ru.yandex.practicum.filmorate.exceptions.NotBurnYetException;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
-@Slf4j
-public class UserController extends CommonController<User> {
-    private final Map<Integer, User> users = new LinkedHashMap<>();
-    private int userId = 0;
+public class UserController {
 
-    @Override
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public @Valid User create(@Valid @RequestBody User user)
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
-        additionalCheck(user);
-        if (!users.containsValue(user)) {
-            user.setId(++userId);
-            log.info("Пользователь добавлен");
-            users.put(user.getId(), user);
-        } else {
-            log.warn("Данный пользователь уже добавлен");
-            throw new AlreadyExistException("Данный пользователь уже добавлен");
-        }
-        return user;
+        return userService.create(user);
     }
 
-    private void additionalCheck(User user) throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
-        if (user.getBirthday().isAfter(LocalDate.now()))
-            throw new NotBurnYetException("Пользователь еще не родился :)");
-        if (user.getName().isBlank()) { // проверка имени на пустоту
-            user.setName(user.getLogin());
-            log.debug("Имени присвоено значение логина");
-        }
-    }
-
-    @Override
     @PutMapping
+    @ResponseStatus(HttpStatus.OK)
     public @Valid User update(@Valid @RequestBody User user) {
-        if (user.getId() < 1)
-            throw new IllegalArgumentException("id не мб меньше 1");
-        additionalCheck(user);
-        if (!users.containsValue(user)) {
-            if (user.getId() == null)
-                user.setId(++userId);
-            log.info("Пользователь добавлен");
-            users.put(user.getId(), user);
-        } else {
-            log.info("Данные о пользователе обновлены");
-            users.put(user.getId(), user);
-        }
-        return user;
+        return userService.update(user);
     }
 
-    @Override
+    // Добавление в друзья
+    @PutMapping("/{id}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void addNewFriendById(@PathVariable(value = "id") Long id,
+                                 @PathVariable(value = "friendId") Long friendId) {
+        userService.addNewFriendById(id, friendId);
+    }
+
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public List<User> get() {
-        log.info("Текущее количество пользователей: {}", users.size());
-        return new ArrayList<>(users.values());
+        return userService.get();
     }
 
+    // Возвращает список друзей определенного пользователя
+    @GetMapping("/{id}/friends")
+    public List<User> returnListOfFriends(@PathVariable(value = "id", required = false) Long id) {
+        return userService.returnListOfFriends(id);
+    }
+
+    // Возвращает пользователя по id
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public User getUserById(@PathVariable(value = "id", required = false) Long id) {
+        return userService.getUserById(id);
+
+    }
+
+    // Список друзей, общих с другим пользователем
+    @GetMapping("{id}/friends/common/{otherId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<User> getMutualFriendsList(@PathVariable(value = "id") Long id,
+                                          @PathVariable(value = "otherId") Long friendId) {
+        return userService.getMutualFriendsList(id, friendId);
+    }
+
+    // Удаление из друзей
+    @DeleteMapping("/{id}/friends/{friendId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteFriendById(@PathVariable(value = "id") Long id,
+                                   @PathVariable(value = "friendId") Long friendId) {
+        userService.deleteFriendById(id, friendId);
+    }
 }
