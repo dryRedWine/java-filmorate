@@ -5,15 +5,15 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.util.List;
 
 public interface FilmStorage {
-    List<Film> getFilmsList();
+    List<Film> getList();
 
-    void putFilm(Long id, Film Film);
+    void put(Long id, Film Film);
 
-    Boolean containsFilm(Film Film);
+    Boolean contains(Film Film);
 
-    Boolean containsFilm(long id);
+    Boolean contains(long id);
 
-    Film returnFilmById(long id);
+    Film getFilmById(long id);
 
     int getSize();
 }

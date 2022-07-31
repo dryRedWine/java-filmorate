@@ -12,28 +12,34 @@ import java.util.Map;
 public class InMemoryFilmStorage implements FilmStorage {
     private final Map<Long, Film> films = new LinkedHashMap<>();
 
+    private final List<String> rating = List.of("G", "PG", "PG", "R", "NC");
+
+    private final List<String> genre = List.of(
+            "Комедия", "Драма", "Мультфильм",
+            "Триллер", "Документальный", "Боевик");
+
     @Override
-    public List<Film> getFilmsList() {
+    public List<Film> getList() {
         return new ArrayList<>(films.values());
     }
 
     @Override
-    public void putFilm(Long id, Film film) {
+    public void put(Long id, Film film) {
         films.put(id, film);
     }
 
     @Override
-    public Boolean containsFilm(Film film) {
+    public Boolean contains(Film film) {
         return films.containsValue(film);
     }
 
     @Override
-    public Boolean containsFilm(long id) {
+    public Boolean contains(long id) {
         return films.containsKey(id);
     }
 
     @Override
-    public Film returnFilmById(long id) {
+    public Film getFilmById(long id) {
         return films.get(id);
     }
 

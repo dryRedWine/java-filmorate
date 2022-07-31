@@ -1,7 +1,5 @@
 package ru.yandex.practicum.filmorate.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,6 +41,27 @@ public class Film {
 
     private final Set<Long> likes;
 
+    private final Set<Long> genres;
+
+    @NotBlank(message = "MPA rating cannot be empty or null")
+    private String mpaRating;
+
+    public Set<Long> getGenres() {
+        return genres;
+    }
+
+    public long returnGenreCount() {
+        return genres.size();
+    }
+
+    public void addGenre(Long genreId) {
+        genres.add(genreId);
+    }
+
+    public void deleteGenre(Long genreId) {
+        genres.remove(genreId);
+    }
+
     public Set<Long> getLikes() {
         return likes;
     }
@@ -65,6 +84,18 @@ public class Film {
         this.releaseDate = releaseDate;
         this.duration = duration;
         likes = new HashSet<>();
+        genres = new HashSet<>();
+    }
+
+    public Film(String name, String description, LocalDate releaseDate, Integer duration,
+                String mpaRating) {
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+        this.mpaRating = mpaRating;
+        likes = new HashSet<>();
+        genres = new HashSet<>();
     }
 
 }
