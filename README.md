@@ -6,10 +6,10 @@ https://drawsql.app/none-1054/diagrams/filmorate
 SELECT user1_id
 FROM friendship
 WHERE user1_id = user_id 
-AND confirmed = 1
+AND status_id = 1
 UNION
 SELECT user2_id
 FROM friendship
 WHERE user2_id = user_id 
-AND confirmed = 1}
+AND status_id = 1}
 ```
