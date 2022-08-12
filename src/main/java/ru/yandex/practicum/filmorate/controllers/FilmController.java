@@ -1,68 +1,79 @@
 package ru.yandex.practicum.filmorate.controllers;
 
-
-import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectParameterException;
 import ru.yandex.practicum.filmorate.exceptions.NotBurnYetException;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
-import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/films")
-@Slf4j
-public class FilmController extends CommonController<Film> {
+public class FilmController {
 
-    private static final LocalDate DATE = LocalDate.of(1895, 12, 28);
+    private final FilmService filmService;
 
-    private final Map<Integer, Film> films = new LinkedHashMap<>();
-    private int filmId = 0;
+    @Autowired
+    public FilmController(FilmService filmService) {
+        this.filmService = filmService;
+    }
 
-    @Override
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public @Valid Film create(@Valid @RequestBody Film film)
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
-        if (film.getReleaseDate().isBefore(DATE))
-            throw new IllegalArgumentException("Выбрана ложная дата релиза");
-        if (!films.containsValue(film)) {
-            film.setId(++filmId);
-            log.info("Данный фильм добавлен");
-            films.put(film.getId(), film);
-        } else {
-            log.warn("Данный фильм уже добавлен");
-            throw new AlreadyExistException("Данный фильм уже добавлен");
-        }
-        return film;
+        return filmService.create(film);
     }
 
-    @Override
     @PutMapping
+    @ResponseStatus(HttpStatus.OK)
     public @Valid Film update(@Valid @RequestBody Film film) {
-        if (film.getId() < 1)
-            throw new IllegalArgumentException("id не мб меньше 1");
-        if (film.getReleaseDate().isBefore(DATE))
-            throw new IllegalArgumentException("Выбрана ложная дата релиза");
-        if (!films.containsValue(film)) {
-            if (film.getId() == null)
-                film.setId(++filmId);
-            log.info("Данный фильм добавлен");
-            films.put(film.getId(), film);
-        } else {
-            log.info("Данные о фильме обновлены");
-            films.put(film.getId(), film);
-        }
-        return film;
+        return filmService.update(film);
     }
 
-    @Override
+    //  Пользователь ставит лайк фильму
+    @PutMapping("/{id}/like/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void putLikeToFilm(@PathVariable(value = "id") Long id,
+                              @PathVariable(value = "userId") Long userId) {
+        filmService.putLikeToFilm(id, userId);
+    }
+
     @GetMapping
+    @ResponseStatus(HttpStatus.OK)
     public List<Film> get() {
-        log.info("Текущее количество добавленных фильмов: {}", films.size());
-        return new ArrayList<>(films.values());
+        return filmService.get();
+    }
+
+    //  Пользователь получает фильм по id
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public Film getFilmById(@PathVariable(value = "id") Long id) {
+        return filmService.getFilmById(id);
+    }
+
+    //  Возвращает список из первых count фильмов по количеству лайков.
+    //  Если значение параметра count не задано, верните первые 10
+    @GetMapping("/popular")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Film> getPopularFilms(
+            @RequestParam(value = "count", defaultValue = "10", required = false) Long count) {
+        if (count < 1)
+            throw new IncorrectParameterException("Count не может быть меньше 1");
+        return filmService.getPopularFilms(count);
+    }
+
+    //  Пользователь удаляет лайк фильму
+    @DeleteMapping("/{id}/like/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteLikeToFilm(@PathVariable(value = "id") Long id,
+                                 @PathVariable(value = "userId") Long userId) {
+        filmService.deleteLikeToFilm(id, userId);
     }
 }
