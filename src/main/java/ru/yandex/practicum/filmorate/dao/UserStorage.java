@@ -5,15 +5,18 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.util.List;
 
 public interface UserStorage {
-    List<User> get();
+    List<User> findAll();
 
-    void put(Long id, User user);
-
-    Boolean contains(User user);
+    User saveUser(User user);
 
     Boolean contains(long id);
+
+    Boolean contains(User user);
 
     User getUserById(long id);
 
     int getSize();
+
+    User update(User user);
+
 }
