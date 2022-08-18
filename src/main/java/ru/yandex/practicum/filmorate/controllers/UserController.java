@@ -9,7 +9,9 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @RestController
@@ -45,13 +47,13 @@ public class UserController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public List<User> get() {
-        return userService.get();
+    public Collection<User> findAll() {
+        return userService.findAll();
     }
 
     // Возвращает список друзей определенного пользователя
     @GetMapping("/{id}/friends")
-    public List<User> returnListOfFriends(@PathVariable(value = "id", required = false) Long id) {
+    public Collection<User> returnListOfFriends(@PathVariable(value = "id", required = false) Long id) {
         return userService.returnListOfFriends(id);
     }
 
@@ -66,8 +68,8 @@ public class UserController {
     // Список друзей, общих с другим пользователем
     @GetMapping("{id}/friends/common/{otherId}")
     @ResponseStatus(HttpStatus.OK)
-    public List<User> getMutualFriendsList(@PathVariable(value = "id") Long id,
-                                          @PathVariable(value = "otherId") Long friendId) {
+    public Collection<User> getMutualFriendsList(@PathVariable(value = "id") Long id,
+                                                 @PathVariable(value = "otherId") Long friendId) {
         return userService.getMutualFriendsList(id, friendId);
     }
 
@@ -78,4 +80,6 @@ public class UserController {
                                    @PathVariable(value = "friendId") Long friendId) {
         userService.deleteFriendById(id, friendId);
     }
+
+
 }

@@ -1,8 +1,9 @@
-package ru.yandex.practicum.filmorate.dao;
+package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.dao.FriendsDao;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
@@ -12,16 +13,18 @@ import java.util.stream.Collectors;
 
 @Repository
 @Slf4j
-public class FriendsDao {
+public class FriendsDaoImpl implements FriendsDao {
     private final JdbcTemplate jdbcTemplate;
 
     private final UserDbStorage userDbStorage;
 
-    public FriendsDao(JdbcTemplate jdbcTemplate, UserDbStorage userDbStorage) {
+    public FriendsDaoImpl(JdbcTemplate jdbcTemplate, UserDbStorage userDbStorage) {
         this.jdbcTemplate = jdbcTemplate;
         this.userDbStorage = userDbStorage;
     }
 
+//    Сохраняет и обновляет
+    @Override
     public void saveFriend(long userId1, long userId2) {
         String sqlQuery = "MERGE INTO friends KEY (user1_id, user2_id, FS_STATUS_ID) VALUES (?, ?, ?)";
         // если второй пользователь добавил в друзья 1
@@ -40,6 +43,7 @@ public class FriendsDao {
 
     }
 
+    @Override
     public List<User> getFriendsByUserId(long userId) {
         String sqlQuery =
                 "SELECT user2_id AS main_user FROM friends\n" +
@@ -59,6 +63,7 @@ public class FriendsDao {
     }
 
 
+    @Override
     public void deleteFriends(long userId, long friendId) {
         String sqlQuery = "DELETE FROM FRIENDS WHERE USER1_ID = ? AND USER2_ID = ?";
         if (containsFriends(friendId, userId)) {

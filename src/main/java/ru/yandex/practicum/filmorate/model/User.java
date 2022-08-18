@@ -1,16 +1,23 @@
 package ru.yandex.practicum.filmorate.model;
 
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
-import javax.validation.constraints.*;
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PastOrPresent;
+import javax.validation.constraints.Pattern;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 @Setter
 @Getter
-@ToString
+@Builder
+@NoArgsConstructor
 public class User {
 
     // Видимо из-за того, что мы еще не проходили данную аннотацию, в тестах возвращается код 500,
@@ -21,49 +28,41 @@ public class User {
 
     private String name;
 
-    @NotNull(message = "Email cannot be null")
-    @Email(message = "Email is mandatory")
-    private String email;
-
     @Pattern(regexp = "^\\S+$", message = "В логине не может содержаться пробел!")
     @NotNull(message = "login cannot be null") // NotBlank сам проверяет на null
     private String login;
 
+    @NotNull(message = "Email cannot be null")
+    @Email(message = "Email is mandatory")
+    private String email;
+
     @NotNull(message = "Birthday cannot be null")
     @PastOrPresent(message = "You cannot burn in future")
     private LocalDate birthday;
-
-    private final Set<Long> friends;
-
-    private final Map<Long, Long> friendsStatus;
-
-    public void addNewStatus(Long userId2, Long statusId) {
-        friendsStatus.put(userId2, statusId);
-    }
-
-    public Set<Long> getFriends() {
-        return friends;
-    }
-
-    public long returnFriendsCount() {
-        return friends.size();
-    }
-
-    public void addNewFriend(Long userId) {
-        friends.add(userId);
-    }
-
-    public void deleteFriend(Long userId) {
-        friends.remove(userId);
-    }
 
     public User(String login, String name, String email, LocalDate birthday) {
         this.email = email;
         this.login = login;
         this.birthday = birthday;
         this.name = name;
-        friends = new HashSet<>();
-        friendsStatus = new HashMap<>();
+    }
+
+    public User(long id, String name, String login, String email, LocalDate birthday) {
+        this.id = id;
+        this.name = name;
+        this.email = email;
+        this.login = login;
+        this.birthday = birthday;
+    }
+
+
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", name);
+        values.put("email", email);
+        values.put("login", login);
+        values.put("birthday", birthday);
+        return values;
     }
 
     @Override
@@ -77,5 +76,16 @@ public class User {
     @Override
     public int hashCode() {
         return Objects.hash(id, email);
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", login='" + login + '\'' +
+                ", birthday=" + birthday +
+                '}';
     }
 }
