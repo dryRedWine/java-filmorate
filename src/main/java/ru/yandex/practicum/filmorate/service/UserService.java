@@ -2,14 +2,15 @@ package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.UserStorage;
+import ru.yandex.practicum.filmorate.dao.impl.FriendsDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.UserStorage;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,15 +19,15 @@ import java.util.Set;
 @Slf4j
 public class UserService {
 
-    private final UserStorage storage;
+    @Qualifier("userDbStorage")
+    private final UserStorage userStorage;
+    private final FriendsDaoImpl friendsDao;
 
     @Autowired
-    public UserService(UserStorage inMemoryStorage) {
-        this.storage = inMemoryStorage;
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendsDaoImpl friendsDao) {
+        this.userStorage = userStorage;
+        this.friendsDao = friendsDao;
     }
-
-    //    Нужно ли добавить в storage? Или оставить тут?
-    private long userId = 0L;
 
     private static void additionalCheck(User user) throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
         if (user.getBirthday().isAfter(LocalDate.now()))
@@ -40,67 +41,54 @@ public class UserService {
     public User create(User user)
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
         additionalCheck(user);
-        if (!storage.contains(user)) {
-            user.setId(++userId);
+        if (!userStorage.contains(user)) {
             log.info("Пользователь добавлен");
-            storage.put(user.getId(), user);
+            return userStorage.saveUser(user);
         } else {
             log.error("Данный пользователь уже добавлен");
             throw new AlreadyExistException("Данный пользователь уже добавлен");
         }
-        return user;
     }
 
     public User update(User user) throws NegativeIdException {
         CheckForId.idCheck(user.getId());
         additionalCheck(user);
-        if (!storage.contains(user)) {
-            if (user.getId() == null)
-                user.setId(++userId);
-            log.info("Пользователь добавлен");
-            storage.put(user.getId(), user);
-        } else {
-            log.info("Данные о пользователе обновлены");
-            storage.put(user.getId(), user);
-        }
+        userStorage.update(user);
+        log.info("Данные о пользователе добавлены или обновлены");
         return user;
     }
 
-    public List<User> get() {
-        log.info("Текущее количество пользователей: {}", storage.getSize());
-        return storage.get();
+    public List<User> findAll() {
+//        log.info("Текущее количество пользователей: {}", userStorage.getSize());
+        return userStorage.findAll();
     }
 
-    public List<User> returnListOfFriends(Long id) throws NegativeIdException {
+    public List<User> returnListOfFriends(long id) throws NegativeIdException {
         CheckForId.idCheck(id);
-        if (!storage.contains(id)) {
+        if (!userStorage.contains(id)) {
             log.error("Данный пользователь не существует");
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
-        final Set<Long> friendsId = storage.getUserById(id).getFriends();
-        List<User> friendsList = new ArrayList<>();
-        for (Long tempId : friendsId)
-            friendsList.add(storage.getUserById(tempId));
+        List<User> friends = friendsDao.getFriendsByUserId(id);
         log.info("Возвращен список друзей заданного пользователя");
-        return friendsList;
+        return friends;
     }
 
-    public User getUserById(Long id) throws NegativeIdException {
+    public User getUserById(long id) throws NegativeIdException {
         CheckForId.idCheck(id);
-        if (storage.contains(id)) {
+        if (userStorage.contains(id)) {
             log.info("Заданный пользователь успешно возвращен");
-            return storage.getUserById(id);
+            return userStorage.getUserById(id);
         } else {
             log.error("Данный пользователь не существует");
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
     }
 
-    public void addNewFriendById(Long id, Long friendId) throws NegativeIdException {
+    public void addNewFriendById(long id, long friendId) throws NegativeIdException {
         CheckForId.idCheck(id, friendId);
-        if (storage.contains(id) && storage.contains(friendId)) {
-            storage.getUserById(id).addNewFriend(friendId);
-            storage.getUserById(friendId).addNewFriend(id);
+        if (userStorage.contains(id) && userStorage.contains(friendId)) {
+            friendsDao.saveFriend(id, friendId);
             log.info("Пользователь успешно добавлен в друзья :)");
         } else {
             log.error("Передан несуществующий id");
@@ -110,9 +98,8 @@ public class UserService {
 
     public void deleteFriendById(Long id, Long friendId) throws NegativeIdException {
         CheckForId.idCheck(id, friendId);
-        if (storage.contains(id) && storage.contains(friendId)) {
-            storage.getUserById(id).deleteFriend(friendId);
-            storage.getUserById(friendId).deleteFriend(id);
+        if (userStorage.contains(id) && userStorage.contains(friendId)) {
+            friendsDao.deleteFriends(id, friendId);
             log.info("Пользователь успешно удален из друзей :(");
         } else {
             log.error("Передан несуществующий id");
@@ -120,15 +107,12 @@ public class UserService {
         }
     }
 
-    public List<User> getMutualFriendsList(Long id, Long otherId) throws NegativeIdException {
+    public Set<User> getMutualFriendsList(Long id, Long otherId) throws NegativeIdException {
         CheckForId.idCheck(id, otherId);
-        Set<Long> helpful1 = new HashSet<>(storage.getUserById(id).getFriends()); // множество друзей пользователя id
-        Set<Long> helpful2 = new HashSet<>(storage.getUserById(otherId).getFriends()); // множество друзей пользователя otherId
-        helpful1.retainAll(helpful2); // выводит boolean, а итоговое множество лежит в helpful1
-        List<User> result = new ArrayList<>();
-        for (Long tempId : helpful1)
-            result.add(storage.getUserById(tempId));
+        Set<User> userSet1 = new HashSet<>(friendsDao.getFriendsByUserId(id));
+        Set<User> userSet2 = new HashSet<>(friendsDao.getFriendsByUserId(otherId));
+        userSet1.retainAll(userSet2);
         log.info("Список общих друзей успешно возвращен");
-        return result;
+        return userSet1;
     }
 }

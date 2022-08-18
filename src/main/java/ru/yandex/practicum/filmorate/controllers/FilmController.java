@@ -11,10 +11,12 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/films")
+@RequestMapping
 public class FilmController {
 
     private final FilmService filmService;
@@ -24,35 +26,35 @@ public class FilmController {
         this.filmService = filmService;
     }
 
-    @PostMapping
+    @PostMapping("/films")
     @ResponseStatus(HttpStatus.CREATED)
     public @Valid Film create(@Valid @RequestBody Film film)
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
         return filmService.create(film);
     }
 
-    @PutMapping
+    @PutMapping("/films")
     @ResponseStatus(HttpStatus.OK)
     public @Valid Film update(@Valid @RequestBody Film film) {
         return filmService.update(film);
     }
 
     //  Пользователь ставит лайк фильму
-    @PutMapping("/{id}/like/{userId}")
+    @PutMapping("/films/{id}/like/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void putLikeToFilm(@PathVariable(value = "id") Long id,
                               @PathVariable(value = "userId") Long userId) {
         filmService.putLikeToFilm(id, userId);
     }
 
-    @GetMapping
+    @GetMapping("/films")
     @ResponseStatus(HttpStatus.OK)
-    public List<Film> get() {
+    public Collection<Film> get() {
         return filmService.get();
     }
 
     //  Пользователь получает фильм по id
-    @GetMapping("/{id}")
+    @GetMapping("/films/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Film getFilmById(@PathVariable(value = "id") Long id) {
         return filmService.getFilmById(id);
@@ -60,9 +62,9 @@ public class FilmController {
 
     //  Возвращает список из первых count фильмов по количеству лайков.
     //  Если значение параметра count не задано, верните первые 10
-    @GetMapping("/popular")
+    @GetMapping("/films/popular")
     @ResponseStatus(HttpStatus.OK)
-    public List<Film> getPopularFilms(
+    public Collection<Film> getPopularFilms(
             @RequestParam(value = "count", defaultValue = "10", required = false) Long count) {
         if (count < 1)
             throw new IncorrectParameterException("Count не может быть меньше 1");
@@ -70,7 +72,7 @@ public class FilmController {
     }
 
     //  Пользователь удаляет лайк фильму
-    @DeleteMapping("/{id}/like/{userId}")
+    @DeleteMapping("/films/{id}/like/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteLikeToFilm(@PathVariable(value = "id") Long id,
                                  @PathVariable(value = "userId") Long userId) {
