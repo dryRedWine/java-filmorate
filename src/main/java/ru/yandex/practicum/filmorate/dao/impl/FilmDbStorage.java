@@ -5,6 +5,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
+import ru.yandex.practicum.filmorate.dao.GenreDao;
+import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
 
@@ -23,14 +26,14 @@ public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final MpaDaoImpl mpaDao;
+    private final MpaDao mpaDao;
 
-    private final GenreDaoImpl genreDao;
+    private final FilmGenreDao filmGenreDao;
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaDaoImpl mpaDao, GenreDaoImpl genreDao){
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaDao mpaDao, FilmGenreDao filmGenreDao){
         this.jdbcTemplate=jdbcTemplate;
         this.mpaDao = mpaDao;
-        this.genreDao = genreDao;
+        this.filmGenreDao = filmGenreDao;
     }
     
 
@@ -70,7 +73,7 @@ public class FilmDbStorage implements FilmStorage {
         long filmId = Objects.requireNonNull(keyHolder.getKey()).longValue();
 //        Заполнение таблицы film_genre
         if (film.getGenres() != null)
-            genreDao.saveGenres(filmId, film.getGenres());
+            filmGenreDao.saveFilmGenre(filmId, film.getGenres());
         log.info("Фильм успешно сохранен в таблице films");
         return getFilmById(filmId);
     }
@@ -97,7 +100,7 @@ public class FilmDbStorage implements FilmStorage {
         String sql = "SELECT * FROM FILMS WHERE id = ?";
         Film resFilm = jdbcTemplate.queryForObject(sql, this::makeFilm, filmId);
         if (resFilm != null) {
-            resFilm.setGenres(genreDao.getGenresById(filmId));
+            resFilm.setGenres(filmGenreDao.getFilmGenreById(filmId));
         }
         return resFilm;
     }
@@ -115,22 +118,10 @@ public class FilmDbStorage implements FilmStorage {
                 film.getReleaseDate(),
                 film.getMpa().getId());
         if (film.getGenres() != null) {
-            genreDao.deleteGenres(film.getId());
-            genreDao.saveGenres(film.getId(), film.getGenres());
+            filmGenreDao.deleteFilmGenre(film.getId());
+            filmGenreDao.saveFilmGenre(film.getId(), film.getGenres());
         }
         return getFilmById(film.getId());
-    }
-
-    @Override
-    public void putLike(long film_id, long favId) {
-        String sqlQuery = "INSERT INTO likes (film_id, user_id) VALUES (?, ?)";
-        jdbcTemplate.update(sqlQuery, film_id, favId);
-    }
-
-    @Override
-    public void deleteLike(long film_id, long favId) {
-        String sqlQuery = "DELETE FROM likes WHERE film_id = ? AND user_id = ?";
-        jdbcTemplate.update(sqlQuery, film_id, favId);
     }
 
     @Override
