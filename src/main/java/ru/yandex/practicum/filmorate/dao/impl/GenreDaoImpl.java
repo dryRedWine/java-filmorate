@@ -41,28 +41,4 @@ public class GenreDaoImpl implements GenreDao {
         return new LinkedHashSet<>(jdbcTemplate.query(sqlQuery, this::mapRowToGenre));
     }
 
-    @Override
-    public void saveGenres(long filmId, LinkedHashSet<Genre> genres) {
-        String sqlQuery = "MERGE INTO FILM_GENRE KEY (film_id, genre_id) VALUES (?, ?)";
-        for (Genre genre : genres)
-            jdbcTemplate.update(sqlQuery, filmId, genre.getId());
-    }
-
-    @Override
-    public void deleteGenres(long filmId) {
-        String sqlQuery = "DELETE FROM FILM_GENRE WHERE FILM_ID = ? ";
-        jdbcTemplate.update(sqlQuery, filmId);
-    }
-
-    @Override
-    public LinkedHashSet<Genre> getGenresById(long film_id) {
-        String sqlQuery = "SELECT genre_id FROM film_genre WHERE film_id = ? ORDER BY GENRE_ID";
-        List<Long> genresId = jdbcTemplate.query(sqlQuery, this::makeGenreId, film_id);
-        return genresId.stream().map(this::findGenre).collect(Collectors.toCollection(LinkedHashSet::new));
-    }
-
-    private Long makeGenreId(ResultSet rs, int i) throws SQLException {
-        return rs.getLong("genre_id");
-    }
-
 }
