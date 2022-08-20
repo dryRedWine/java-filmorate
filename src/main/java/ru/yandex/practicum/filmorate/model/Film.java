@@ -9,6 +9,7 @@ import java.util.*;
 @Getter
 @EqualsAndHashCode
 @Builder
+@AllArgsConstructor
 public class Film {
 
     // Видимо из-за того, что мы еще не проходили данную аннотацию, в тестах возвращается код 500,
@@ -48,6 +49,7 @@ public class Film {
     public void setGenres(LinkedHashSet<Genre> genres) {
         this.genres = genres;
     }
+   
 
     public Map<String, Object> toMap() {
         Map<String, Object> values = new HashMap<>();
