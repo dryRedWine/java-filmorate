@@ -10,4 +10,9 @@ public interface GenreDao {
 
     LinkedHashSet<Genre> findAll();
 
+    void saveGenres(long filmId, LinkedHashSet<Genre> genres);
+
+    void deleteGenres(long filmId);
+
+    LinkedHashSet<Genre> getGenresById(long film_id);
 }

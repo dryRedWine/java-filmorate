@@ -1,11 +1,9 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.dao.FriendsDao;
-import ru.yandex.practicum.filmorate.dao.UserStorage;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.sql.ResultSet;
@@ -18,10 +16,9 @@ import java.util.stream.Collectors;
 public class FriendsDaoImpl implements FriendsDao {
     private final JdbcTemplate jdbcTemplate;
 
-    @Qualifier("userDbStorage")
-    private final UserStorage userDbStorage;
+    private final UserDbStorage userDbStorage;
 
-    public FriendsDaoImpl(JdbcTemplate jdbcTemplate, @Qualifier("userDbStorage") UserDbStorage userDbStorage) {
+    public FriendsDaoImpl(JdbcTemplate jdbcTemplate, UserDbStorage userDbStorage) {
         this.jdbcTemplate = jdbcTemplate;
         this.userDbStorage = userDbStorage;
     }

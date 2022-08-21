@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
-import ru.yandex.practicum.filmorate.dao.LikesDao;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
@@ -19,12 +18,12 @@ public class FilmService {
 
     @Qualifier("filmDbStorage")
     private final FilmStorage filmStorage;
-    private final LikesDao likesDao;
+    private final UserService userService;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, UserService userService) {
         this.filmStorage = inMemoryFilmStorage;
-        this.likesDao = likesDao;
+        this.userService = userService;
     }
 
     private static final LocalDate DATE = LocalDate.of(1895, 12, 28);
@@ -68,13 +67,13 @@ public class FilmService {
 
     public void putLikeToFilm(Long film_id, Long favId) throws NegativeIdException {
         CheckForId.idCheck(film_id, favId);
-        likesDao.putLike(film_id, favId);
+        filmStorage.putLike(film_id, favId);
         log.info("+1 лайк");
     }
 
     public void deleteLikeToFilm(Long film_id, Long hateId) throws NegativeIdException {
         CheckForId.idCheck(film_id, hateId);
-        likesDao.deleteLike(film_id, hateId);
+        filmStorage.deleteLike(film_id, hateId);
         log.info("-1 лайк");
     }
 

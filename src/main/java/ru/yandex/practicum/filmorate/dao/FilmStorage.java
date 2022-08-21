@@ -20,5 +20,9 @@ public interface FilmStorage {
 
     Film update(Film film);
 
+    void putLike(long id, long favId);
+
+    void deleteLike(long id, long favId);
+
     List<Film> getPopularFilms(long film_id);
 }
