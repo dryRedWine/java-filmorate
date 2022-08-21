@@ -9,7 +9,6 @@ import java.util.*;
 @Getter
 @EqualsAndHashCode
 @Builder
-@AllArgsConstructor
 public class Film {
 
     // Видимо из-за того, что мы еще не проходили данную аннотацию, в тестах возвращается код 500,
