@@ -32,7 +32,10 @@ public class GenreDaoImpl implements GenreDao {
     }
 
     private @Valid Genre mapRowToGenre(ResultSet rs, int rowNum) throws SQLException {
-        return Genre.builder().id(rs.getInt("id")).name(rs.getString("name")).build();
+        return Genre.builder()
+                .id(rs.getInt("id"))
+                .name(rs.getString("name"))
+                .build();
     }
 
     @Override
