@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -77,5 +78,12 @@ public class FilmController {
     public void deleteLikeToFilm(@PathVariable(value = "id") Long id,
                                  @PathVariable(value = "userId") Long userId) {
         filmService.deleteLikeToFilm(id, userId);
+    }
+
+    @GetMapping("/films/search")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<String> searchFilms(@RequestParam(required = false) String query,
+                                          @RequestParam(value = "by", required = false) List<String> by) {
+        return Collections.EMPTY_LIST;
     }
 }

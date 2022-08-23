@@ -128,7 +128,7 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> getPopularFilms(long count) {
         String sqlQuery =
                 "SELECT DISTINCT f.ID,\n" +
-                        " l.USER_ID\n" +
+                        "                COUNT(l.USER_ID) AS count_likes\n" +
                         "FROM films AS f\n" +
                         "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
                         "GROUP BY f.ID\n" +
