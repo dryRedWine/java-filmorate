@@ -42,6 +42,12 @@ public class Film {
 
     private LinkedHashSet<Genre> genres;
 
+    private Set<Director> directors;
+
+    public void setDirectors(Set<Director> directors) {
+        this.directors = directors;
+    }
+
     public LinkedHashSet<Genre> getGenres() {
         return genres;
     }
