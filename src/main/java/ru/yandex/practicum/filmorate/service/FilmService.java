@@ -82,4 +82,10 @@ public class FilmService {
         log.info("Вывод рейтинга фильмов по количеству лайков");
         return filmStorage.getPopularFilms(count);
     }
+
+    public void deleteFilm(Long film_id) throws NegativeIdException {
+        CheckForId.idCheck(film_id);
+        filmStorage.deleteFilm(film_id);
+        log.info("-1 фильм");
+    }
 }

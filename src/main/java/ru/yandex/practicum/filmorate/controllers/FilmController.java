@@ -78,4 +78,10 @@ public class FilmController {
                                  @PathVariable(value = "userId") Long userId) {
         filmService.deleteLikeToFilm(id, userId);
     }
+
+    @DeleteMapping("/films/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteFilm(@PathVariable(value = "id") Long id) {
+        filmService.deleteFilm(id);
+    }
 }

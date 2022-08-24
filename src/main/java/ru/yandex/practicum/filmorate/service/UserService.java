@@ -115,4 +115,15 @@ public class UserService {
         log.info("Список общих друзей успешно возвращен");
         return userSet1;
     }
+
+    public void deleteUserById(Long id) throws NegativeIdException {
+        //CheckForId.idCheck(id);
+        if (userStorage.contains(id)) {
+            userStorage.deleteUser(id);
+            log.info("Пользователь успешно удален :(");
+        } else {
+            log.error("Передан несуществующий id");
+            throw new InvalidIdInPathException("Передан несуществующий id");
+        }
+    }
 }

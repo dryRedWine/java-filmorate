@@ -6,7 +6,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
-import ru.yandex.practicum.filmorate.dao.GenreDao;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
@@ -123,7 +122,7 @@ public class FilmDbStorage implements FilmStorage {
         }
         return getFilmById(film.getId());
     }
-
+/*
     @Override
     public List<Film> getPopularFilms(long count) {
         String sqlQuery =
@@ -139,7 +138,7 @@ public class FilmDbStorage implements FilmStorage {
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
     }
-
+*/
     private Long makeFilmId(ResultSet rs, int i) throws SQLException {
         return rs.getLong("id");
     }
@@ -147,5 +146,36 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public int getSize() {
         return 0;
+    }
+
+    @Override
+    public void deleteFilm(long filmId) {
+        String sqlQuery = "DELETE FROM films WHERE ID = ?";
+        jdbcTemplate.update(sqlQuery, filmId);
+    }
+
+    @Override
+    public List<Film> getPopularFilms(long count) {
+        final String sqlQuery = "SELECT " +
+                "f.id, " +
+                "f.name, " +
+                "f.description, " +
+                "f.release_date, " +
+                "f.duration, " +
+                "f.id, " +
+                "r.ID, " +
+                "r.NAME AS rateName, " +
+                "FROM films AS f " +
+                "JOIN mpa AS r on f.id = r.id " +
+                "LEFT JOIN likes AS l ON f.id = l.film_id " +
+                "GROUP BY f.id " +
+                "ORDER BY COUNT(l.user_id) " +
+                "DESC LIMIT ?";
+
+
+        List<Long> popularity = jdbcTemplate.query(sqlQuery, this::makeFilmId, count);
+        return popularity.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
     }
 }
