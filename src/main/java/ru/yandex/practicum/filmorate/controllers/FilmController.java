@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping
+@Slf4j
 public class FilmController {
 
     private final FilmService filmService;
@@ -49,7 +51,7 @@ public class FilmController {
 
     @GetMapping("/films")
     @ResponseStatus(HttpStatus.OK)
-    public Collection<Film> get() {
+    public List<Film> get() {
         return filmService.get();
     }
 
@@ -77,5 +79,19 @@ public class FilmController {
     public void deleteLikeToFilm(@PathVariable(value = "id") Long id,
                                  @PathVariable(value = "userId") Long userId) {
         filmService.deleteLikeToFilm(id, userId);
+    }
+
+    @GetMapping("/films/director/{directorId}")
+    public List<Film> sortByFilm(@PathVariable int directorId, @RequestParam String sortBy) {
+        if ("year".equals(sortBy)) {
+            log.debug("Сортируем список фильмов конкретного режиссера с id={} по годам", directorId);
+            return filmService.findAllFilmsOfDirectorSortedByYear(directorId);
+        } else if ("likes".equals(sortBy)) {
+            log.debug("Сортируем список фильмов конкретного режиссера с id={} по лайкам", directorId);
+            return filmService.findAllFilmsOfDirectorSortedByLikes(directorId);
+        } else {
+            log.debug("Ошибка в параметре {}", sortBy);
+            return null;
+        }
     }
 }

@@ -39,9 +39,9 @@ public class DirectorController {
         return directorService.update(director);
     }
 
-    @DeleteMapping
-    public void deleteDirector(@Valid @RequestBody Director director) {
-        directorService.delete(director);
+    @DeleteMapping("/{id}")
+    public void deleteDirector(@PathVariable long id) {
+        directorService.delete(id);
     }
 
 

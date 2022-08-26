@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
-import ru.yandex.practicum.filmorate.dao.LikesDao;
+import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
@@ -21,25 +21,49 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final LikesDao likesDao;
 
+    private final FilmDirectorDao filmDirectorDao;
+
+    private final DirectorDao directorDao;
+
+    private final FilmGenreDao filmGenreDao;
+
+
+
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao) {
-        this.filmStorage = inMemoryFilmStorage;
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage filmStorage, LikesDao likesDao, FilmDirectorDao filmDirectorDao, DirectorDao directorDao, FilmGenreDao filmGenreDao) {
+        this.filmStorage = filmStorage;
         this.likesDao = likesDao;
+        this.filmDirectorDao = filmDirectorDao;
+        this.directorDao = directorDao;
+        this.filmGenreDao = filmGenreDao;
     }
 
     private static final LocalDate DATE = LocalDate.of(1895, 12, 28);
 
     public Film create(Film film)
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
-        if (film.getReleaseDate().isBefore(DATE))
+
+
+        if (film.getReleaseDate().isBefore(DATE)) {
             throw new IllegalArgumentException("Выбрана ложная дата релиза");
+        }
+
+
         if (!filmStorage.contains(film)) {
             log.info("Данный фильм добавлен");
-            return filmStorage.saveFilm(film);
+            film = filmStorage.saveFilm(film);
+            if (film.getGenres() != null) {
+                filmGenreDao.saveFilmGenre(film.getId(), film.getGenres());
+            }
+            if (film.getDirectors() != null) {
+                filmDirectorDao.saveFilmDirector(film.getId(), film.getDirectors());
+            }
+            return film;
         } else {
             log.error("Данный фильм уже добавлен");
             throw new AlreadyExistException("Данный фильм уже добавлен");
         }
+
     }
 
     public Film update(Film film) throws NegativeIdException {
@@ -63,7 +87,10 @@ public class FilmService {
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
         log.info("Заданный пользователь успешно возвращен");
-        return filmStorage.getFilmById(id);
+        Film film = filmStorage.getFilmById(id);
+        film.setGenres(filmGenreDao.getFilmGenreById(id));
+        film.setDirectors(filmDirectorDao.getFilmDirectors(film));
+        return film;
     }
 
     public void putLikeToFilm(Long film_id, Long favId) throws NegativeIdException {
@@ -81,5 +108,31 @@ public class FilmService {
     public List<Film> getPopularFilms(Long count) throws NegativeIdException {
         log.info("Вывод рейтинга фильмов по количеству лайков");
         return filmStorage.getPopularFilms(count);
+    }
+
+    public List<Film> findAllFilmsOfDirectorSortedByYear(long id) {
+        final Director director = directorDao.get(id);
+        if (director == null) {
+            throw new InvalidIdInPathException("Director with id=" + id + "not found");
+        }
+        List<Film> sortedFilms = directorDao.getSortedFilmsByYearOfDirector(id);
+        for (Film film : sortedFilms) {
+            film.setGenres(filmGenreDao.getFilmGenreById(id));
+            film.setDirectors(filmDirectorDao.getFilmDirectors(film));
+        }
+        return sortedFilms;
+    }
+
+    public List<Film> findAllFilmsOfDirectorSortedByLikes(long id) {
+        final Director director = directorDao.get(id);
+        if (director == null) {
+            throw new InvalidIdInPathException("Director with id=" + id + "not found");
+        }
+        List<Film> sortedFilms = directorDao.getSortedFilmsByLikesOfDirector(id);
+        for (Film film : sortedFilms) {
+            film.setGenres(filmGenreDao.getFilmGenreById(id));
+            film.setDirectors(filmDirectorDao.getFilmDirectors(film));
+        }
+        return sortedFilms;
     }
 }

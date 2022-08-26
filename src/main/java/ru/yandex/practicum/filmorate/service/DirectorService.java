@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.DirectorDao;
 import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectParameterException;
+import ru.yandex.practicum.filmorate.exceptions.InvalidIdInPathException;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
@@ -20,7 +22,11 @@ public class DirectorService {
     }
 
     public Director get(long id) {
-        return directorDao.get(id);
+        final Director directorById = directorDao.get(id);
+        if (directorById == null) {
+            throw new InvalidIdInPathException("Director with id=" + id + "not found");
+        }
+        return directorById;
     }
 
     public List<Director> getAll() {
@@ -28,20 +34,29 @@ public class DirectorService {
     }
 
     public Director create(Director director) {
-        if (!directorDao.contains(director.getId())) {
-            return directorDao.create(director);
-        } else {
-            throw new  AlreadyExistException("Такой режисер уже есть в базе данных");
-        }
+        final Director directorFromStorage = directorDao.get(director.getId());
+        if (directorFromStorage == null) {
+            directorDao.create(director);
+        } else throw new AlreadyExistException(String.format(
+                "Режиссер с таким id %s уже зарегистрирован.", director.getId()));
+        return director;
     }
 
     public Director update(Director director) {
-        CheckForId.idCheck(director.getId());
-        return directorDao.update(director);
+        final Director directorFromStorage = directorDao.get(director.getId());
+        if (directorFromStorage == null) {
+            throw new InvalidIdInPathException("Director with id=" + director.getId() + "not found");
+        }
+        directorDao.update(director);
+        return director;
     }
 
-    public void delete(Director director) {
-        directorDao.delete(director);
+    public void delete(long id) {
+        final Director directorFromStorage = directorDao.get(id);
+        if (directorFromStorage == null) {
+            throw new InvalidIdInPathException("Director with id=" + id + "not found");
+        }
+        directorDao.delete(directorFromStorage);
     }
 
 

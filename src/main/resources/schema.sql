@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS films
     description VARCHAR(200) NOT NULL,
     duration INTEGER NOT NULL,
     release_date DATE NOT NULL,
-    mpa_id INTEGER REFERENCES mpa (id) ON DELETE CASCADE,
+    mpa_id INTEGER REFERENCES mpa (id),
     CONSTRAINT constr_description CHECK description <> '',
     CONSTRAINT constr_name CHECK name <> ''
 );

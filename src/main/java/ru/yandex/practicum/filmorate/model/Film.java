@@ -9,6 +9,8 @@ import java.util.*;
 @Getter
 @EqualsAndHashCode
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Film {
 
     // Видимо из-за того, что мы еще не проходили данную аннотацию, в тестах возвращается код 500,
@@ -16,6 +18,10 @@ public class Film {
     // Но, к счастью, в других тестах есть и 400, и 500))))
 //    @Positive(message = "id can be only positive")
     private Long id;
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     @NotBlank(message = "Name cannot be empty or null")
     private String name;
@@ -37,14 +43,22 @@ public class Film {
 //    @Max(value = 10)
 //    private Integer rate;
 
-    private final Mpa mpa;
+    private Mpa mpa;
+
+    public void setMpa(Mpa mpa) {
+        this.mpa = mpa;
+    }
 
     private LinkedHashSet<Genre> genres;
 
-    private Set<Director> directors;
+    private Set<Director> directors = new HashSet<>();
 
     public void setDirectors(Set<Director> directors) {
         this.directors = directors;
+    }
+
+    public Set<Director> getDirectors() {
+        return directors;
     }
 
     public LinkedHashSet<Genre> getGenres() {
@@ -64,13 +78,13 @@ public class Film {
         values.put("mpa_id", mpa.getId());
         return values;
     }
-//
-//    public Film(String name, String description, LocalDate releaseDate, Integer duration) {
-//        this.name = name;
-//        this.description = description;
-//        this.releaseDate = releaseDate;
-//        this.duration = duration;
-//    }
+
+    public Film(String name, String description, LocalDate releaseDate, Integer duration) {
+        this.name = name;
+        this.description = description;
+        this.releaseDate = releaseDate;
+        this.duration = duration;
+    }
 
 //    public Film(String name, String description, LocalDate releaseDate, Integer duration,
 //                Integer mpaRating) {
