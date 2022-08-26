@@ -79,7 +79,7 @@ public class FilmService {
         log.info("-1 лайк");
     }
 
-    public List<Film> getPopularFilms(Long count) throws NegativeIdException {
+    public List<Film> getPopularFilms(Integer count) throws NegativeIdException {
         log.info("Вывод рейтинга фильмов по количеству лайков");
         return filmStorage.getPopularFilms(count);
     }

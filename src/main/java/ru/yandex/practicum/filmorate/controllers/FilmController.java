@@ -3,10 +3,7 @@ package ru.yandex.practicum.filmorate.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
-import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
-import ru.yandex.practicum.filmorate.exceptions.IncorrectParameterException;
-import ru.yandex.practicum.filmorate.exceptions.NotBurnYetException;
+import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
@@ -66,7 +63,7 @@ public class FilmController {
     @GetMapping("/films/popular")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> getPopularFilms(
-            @RequestParam(value = "count", defaultValue = "10", required = false) Long count) {
+            @RequestParam(value = "count", defaultValue = "10", required = false) Integer count) {
         if (count < 1)
             throw new IncorrectParameterException("Count не может быть меньше 1");
         return filmService.getPopularFilms(count);
@@ -84,6 +81,10 @@ public class FilmController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> searchFilms(@RequestParam(value = "query", required = false) String query,
                                           @RequestParam(value = "by", required = false) List<String> by) {
+        if (query == null && by == null)
+            return filmService.getPopularFilms(10);
+        else if (query == null || by == null)
+            throw new IncorrectPathException("Передан неправильный параметр запроса");
         return filmService.searchFilms(query, by);
     }
 }
