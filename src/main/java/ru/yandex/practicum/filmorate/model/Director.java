@@ -8,7 +8,7 @@ import lombok.Getter;
 import javax.validation.constraints.NotBlank;
 
 @Builder
-@EqualsAndHashCode
+@EqualsAndHashCode(of = "id")
 @Getter
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class Director {

@@ -65,5 +65,22 @@ public class Film {
         values.put("mpa_id", mpa.getId());
         return values;
     }
+//
+//    public Film(String name, String description, LocalDate releaseDate, Integer duration) {
+//        this.name = name;
+//        this.description = description;
+//        this.releaseDate = releaseDate;
+//        this.duration = duration;
+//    }
+
+//    public Film(String name, String description, LocalDate releaseDate, Integer duration,
+//                Integer mpaRating) {
+//        this.name = name;
+//        this.description = description;
+//        this.releaseDate = releaseDate;
+//        this.duration = duration;
+//        this.mpaRating = mpaRating;
+//    }
+
 
 }

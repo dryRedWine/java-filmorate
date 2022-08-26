@@ -9,7 +9,6 @@ import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -86,5 +85,16 @@ public class FilmController {
         else if (query == null || by == null)
             throw new IncorrectPathException("Передан неправильный параметр запроса");
         return filmService.searchFilms(query, by);
+    }
+
+    @GetMapping("/films/director/{directorId}")
+    public List<Film> sortByFilm(@PathVariable int directorId, @RequestParam String sortBy) {
+        if ("year".equals(sortBy)) {
+            return filmService.findAllFilmsOfDirectorSortedByYear(directorId);
+        } else if ("likes".equals(sortBy)) {
+            return filmService.findAllFilmsOfDirectorSortedByLikes(directorId);
+        } else {
+            return null;
+        }
     }
 }

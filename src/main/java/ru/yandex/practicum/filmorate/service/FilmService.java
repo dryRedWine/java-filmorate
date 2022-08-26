@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
 import ru.yandex.practicum.filmorate.dao.LikesDao;
 import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
@@ -82,6 +83,32 @@ public class FilmService {
     public List<Film> getPopularFilms(Integer count) throws NegativeIdException {
         log.info("Вывод рейтинга фильмов по количеству лайков");
         return filmStorage.getPopularFilms(count);
+    }
+
+    public List<Film> findAllFilmsOfDirectorSortedByYear(long id) {
+        final Director director = directorDao.get(id);
+        if (director == null) {
+            throw new InvalidIdInPathException("Director with id=" + id + "not found");
+        }
+        List<Film> sortedFilms = directorDao.getSortedFilmsByYearOfDirector(id);
+        for (Film film : sortedFilms) {
+            film.setGenres(filmGenreDao.getFilmGenreById(id));
+            film.setDirectors(filmDirectorDao.getFilmDirectors(film));
+        }
+        return sortedFilms;
+    }
+
+    public List<Film> findAllFilmsOfDirectorSortedByLikes(long id) {
+        final Director director = directorDao.get(id);
+        if (director == null) {
+            throw new InvalidIdInPathException("Director with id=" + id + "not found");
+        }
+        List<Film> sortedFilms = directorDao.getSortedFilmsByLikesOfDirector(id);
+        for (Film film : sortedFilms) {
+            film.setGenres(filmGenreDao.getFilmGenreById(id));
+            film.setDirectors(filmDirectorDao.getFilmDirectors(film));
+        }
+        return sortedFilms;
     }
 
     public Collection<Film> searchFilms(String query, List<String> by) {
