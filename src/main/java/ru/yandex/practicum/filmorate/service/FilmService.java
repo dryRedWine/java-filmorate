@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -81,5 +82,18 @@ public class FilmService {
     public List<Film> getPopularFilms(Long count) throws NegativeIdException {
         log.info("Вывод рейтинга фильмов по количеству лайков");
         return filmStorage.getPopularFilms(count);
+    }
+
+    public Collection<Film> searchFilms(String query, List<String> by) {
+        if (by.size() == 1) {
+            if (by.contains("title"))
+                return filmStorage.searchFilmsByTitle(query);
+            else if (by.contains("director"))
+                return filmStorage.searchFilmsByDirector(query);
+            else throw new InvalidIdInPathException("Передан некорректный параметр запроса");
+        } else if (by.size() == 2)
+            return filmStorage.searchFilmsByDirectorOrTitle(query);
+        else
+            throw new InvalidIdInPathException("Передан некорректный параметр запроса");
     }
 }
