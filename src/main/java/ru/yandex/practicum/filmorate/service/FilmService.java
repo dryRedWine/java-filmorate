@@ -82,4 +82,9 @@ public class FilmService {
         log.info("Вывод рейтинга фильмов по количеству лайков");
         return filmStorage.getPopularFilms(count);
     }
+
+    public List<Film> getPopularFilmsOrderByGenreYear(int count, long genreId, int year) {
+        log.info("Cписок фильмов, отсортированных по жанру и за указанный год.");
+        return filmStorage.getPopularFilmsOrderByGenreYear(count, genreId, year) ;
+    }
 }

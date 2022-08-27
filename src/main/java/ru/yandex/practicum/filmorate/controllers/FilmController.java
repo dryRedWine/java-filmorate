@@ -78,4 +78,13 @@ public class FilmController {
                                  @PathVariable(value = "userId") Long userId) {
         filmService.deleteLikeToFilm(id, userId);
     }
+
+    @GetMapping("/films/popular?count={limit}&genreId={genreId}&year={year}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Film> getPopularFilmsOrderByGenreYear
+            (@PathVariable(value = "limit") int count,
+             @PathVariable(value = "genreId" ) Long genreId,
+             @PathVariable(value = "year" ) int year) {
+        return filmService.getPopularFilmsOrderByGenreYear(count, genreId, year);
+    }
 }
