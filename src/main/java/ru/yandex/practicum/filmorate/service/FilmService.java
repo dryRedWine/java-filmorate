@@ -82,4 +82,9 @@ public class FilmService {
         log.info("Вывод рейтинга фильмов по количеству лайков");
         return filmStorage.getPopularFilms(count);
     }
+
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        log.info("Cписок фильмов, отсортированных по популярности.");
+        return filmStorage.getCommonFilms(userId, friendId);
+    }
 }

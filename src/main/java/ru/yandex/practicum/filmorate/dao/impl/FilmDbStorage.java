@@ -6,7 +6,6 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
-import ru.yandex.practicum.filmorate.dao.GenreDao;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
@@ -147,5 +146,27 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public int getSize() {
         return 0;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId){
+        String sqlQuery = "SELECT f.id, " +
+                "f.name, " +
+                "f.description, " +
+                "f.release_date, " +
+                "f.duration, " +
+                "f.id AS film_id, " +
+                "r.ID AS MPA_ID, " +
+                "r.NAME AS rateName\n" +
+                "FROM films AS f \n" +
+                "JOIN mpa AS r on f.id = r.id \n" +
+                "LEFT JOIN likes AS l ON f.id = l.film_id\n" +
+                "WHERE l.user_id = ? or l.user_id = ? \n" +
+                "GROUP BY f.id\n" +
+                "ORDER BY COUNT(l.user_id) DESC ";
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, userId, friendId);
+        return commonFilms.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
     }
 }

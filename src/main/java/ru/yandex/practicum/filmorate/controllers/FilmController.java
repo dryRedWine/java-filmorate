@@ -78,4 +78,11 @@ public class FilmController {
                                  @PathVariable(value = "userId") Long userId) {
         filmService.deleteLikeToFilm(id, userId);
     }
+
+    @GetMapping("/films/common?userId={userId}&friendId={friendId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Film> getCommonFilms(@PathVariable(value = "userId") Long userId,
+                                     @PathVariable(value = "friendId" ) Long friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+    }
 }
