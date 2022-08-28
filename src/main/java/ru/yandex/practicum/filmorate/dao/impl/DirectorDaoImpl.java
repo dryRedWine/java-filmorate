@@ -15,7 +15,6 @@ import javax.validation.Valid;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 
@@ -88,11 +87,11 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public List<Film> getSortedFilmsByYearOfDirector(long id) {
-        String sqlQuery = "SELECT f.ID, f.NAME, RELEASE_DATE, DESCRIPTION, DURATION," +
-                " m.ID, m.NAME  " +
-                "FROM FILMS f JOIN MPA m ON f.MPA_ID = m.ID " +
+        String sqlQuery = "SELECT *" +
+                "FROM FILMS f " +
                 "WHERE f.ID IN (SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?) " +
-                "ORDER BY RELEASE_DATE;";
+//                "GROUP BY f.ID " +
+                "ORDER BY f.RELEASE_DATE;";
         return jdbcTemplate.query(sqlQuery, this::makeFilm, id);
     }
 

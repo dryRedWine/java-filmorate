@@ -12,10 +12,6 @@ public interface DirectorDao {
     Director update(Director director);
     void delete(Director director);
 
-//    void setFilmDirector(Film film);
-//
-//    List<Director> loadFilmDirector(Film film);
-
     List<Film> getSortedFilmsByYearOfDirector(long id);
 
     List<Film> getSortedFilmsByLikesOfDirector(long id);

@@ -5,16 +5,17 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.dao.*;
-import ru.yandex.practicum.filmorate.model.Director;
+import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
+import ru.yandex.practicum.filmorate.dao.GenreDao;
+import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dao.FilmStorage;
 
 import javax.validation.Valid;
 import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -29,24 +30,20 @@ public class FilmDbStorage implements FilmStorage {
 
     private final FilmGenreDao filmGenreDao;
 
-    private final FilmDirectorDao filmDirectorDao;
-
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaDao mpaDao, FilmGenreDao filmGenreDao, FilmDirectorDao filmDirectorDao){
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaDao mpaDao, FilmGenreDao filmGenreDao){
         this.jdbcTemplate=jdbcTemplate;
         this.mpaDao = mpaDao;
         this.filmGenreDao = filmGenreDao;
-        this.filmDirectorDao = filmDirectorDao;
     }
     
 
     @Override
     public List<Film> findAll() {
         String sqlQuery = "SELECT * FROM FILMS";
-
         return jdbcTemplate.query(sqlQuery, this::makeFilm);
     }
 
-    private @Valid Film makeFilm(ResultSet rs, int rowNum) throws SQLException {
+    private @Valid Film makeFilm(ResultSet rs, int i) throws SQLException {
         return Film.builder()
                 .id(rs.getLong("id"))
                 .name(rs.getString("name"))
@@ -63,7 +60,6 @@ public class FilmDbStorage implements FilmStorage {
         String sqlQuery = "INSERT INTO films (name, description, duration, release_date, mpa_id) " +
                 "VALUES (?, ?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
-
         jdbcTemplate.update(connection -> {
             PreparedStatement stmt = connection.prepareStatement(sqlQuery, new String[]{"id"});
             stmt.setString(1, film.getName());
@@ -95,6 +91,7 @@ public class FilmDbStorage implements FilmStorage {
                         "WHERE NAME = ? AND DESCRIPTION = ? AND DURATION = ? AND RELEASE_DATE = ? AND MPA_ID = ?",
                 ResultSet::next, film.getName(), film.getDescription(), film.getDuration(),
                 film.getReleaseDate(), film.getMpa().getId());
+
     }
 
     @Override
@@ -123,7 +120,6 @@ public class FilmDbStorage implements FilmStorage {
         if (film.getGenres() != null) {
             filmGenreDao.deleteFilmGenre(film.getId());
             filmGenreDao.saveFilmGenre(film.getId(), film.getGenres());
-            filmDirectorDao.setFilmDirector(film);
         }
         return getFilmById(film.getId());
     }
@@ -132,7 +128,7 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> getPopularFilms(long count) {
         String sqlQuery =
                 "SELECT DISTINCT f.ID,\n" +
-                        "                COUNT(l.USER_ID) AS count_likes\n" +
+                        " l.USER_ID\n" +
                         "FROM films AS f\n" +
                         "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
                         "GROUP BY f.ID\n" +
