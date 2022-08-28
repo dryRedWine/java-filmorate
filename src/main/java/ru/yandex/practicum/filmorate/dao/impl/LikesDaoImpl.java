@@ -14,8 +14,12 @@ public class LikesDaoImpl implements LikesDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    public LikesDaoImpl(JdbcTemplate jdbcTemplate) {
+    private final EventDaoImpl eventDaoImpl;
+
+    public LikesDaoImpl(JdbcTemplate jdbcTemplate, EventDaoImpl eventDaoImpl) {
         this.jdbcTemplate = jdbcTemplate;
+
+        this.eventDaoImpl = eventDaoImpl;
     }
 
     @Override

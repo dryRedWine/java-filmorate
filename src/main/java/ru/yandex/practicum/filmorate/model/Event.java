@@ -1,14 +1,15 @@
 package ru.yandex.practicum.filmorate.model;
 
 import lombok.Builder;
+import lombok.Getter;
 import ru.yandex.practicum.filmorate.model.eventEnum.EventOperation;
 import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
 @Builder
+@Getter
 public class Event {
     private Long id;
 
@@ -20,7 +21,7 @@ public class Event {
 
     private EventOperation eventOperation;
 
-    private Instant timestamp;
+    private long timestamp;
 
     public Map<String, Object> toEvent() {
         Map<String, Object> values = new HashMap<>();
@@ -30,4 +31,5 @@ public class Event {
         values.put("eventOperation", eventOperation);
         return values;
     }
+
 }
