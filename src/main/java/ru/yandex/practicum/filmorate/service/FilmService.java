@@ -8,6 +8,8 @@ import ru.yandex.practicum.filmorate.dao.FilmStorage;
 import ru.yandex.practicum.filmorate.dao.LikesDao;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventOperation;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
@@ -21,10 +23,13 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final LikesDao likesDao;
 
+    private final EventService eventService;
+
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, EventService eventService) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
+        this.eventService = eventService;
     }
 
     private static final LocalDate DATE = LocalDate.of(1895, 12, 28);
@@ -70,6 +75,7 @@ public class FilmService {
         CheckForId.idCheck(film_id, favId);
         likesDao.putLike(film_id, favId);
         log.info("+1 лайк");
+        eventService.addEvent(favId, EventType.LIKE, EventOperation.ADD, film_id);
     }
 
     public void deleteLikeToFilm(Long film_id, Long hateId) throws NegativeIdException {
