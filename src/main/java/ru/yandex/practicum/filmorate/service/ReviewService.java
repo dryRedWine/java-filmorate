@@ -5,8 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.ReviewDao;
+import ru.yandex.practicum.filmorate.dao.impl.EventDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.InvalidIdInPathException;
 import ru.yandex.practicum.filmorate.model.Review;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventOperation;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.util.List;
@@ -17,9 +20,12 @@ import java.util.List;
 public class ReviewService {
     ReviewDao reviewDao;
 
+    private final EventDaoImpl eventDaoImpl;
+
     @Autowired
-    public ReviewService(ReviewDao dao) {
+    public ReviewService(ReviewDao dao, EventDaoImpl eventDaoImpl) {
         this.reviewDao = dao;
+        this.eventDaoImpl = eventDaoImpl;
     }
 
     public Review create(Review review) {
@@ -27,6 +33,7 @@ public class ReviewService {
         CheckForId.idCheck(review.getUserId());
         Review createdReview = reviewDao.save(review);
         reviewDao.addReviewRate(createdReview.getReviewId());
+        eventDaoImpl.addEvent(review.getUserId(), EventType.REVIEW, EventOperation.ADD, review.getReviewId());
         return review;
     }
 
@@ -47,14 +54,17 @@ public class ReviewService {
 
     public Review update(Review review) {
         CheckForId.idCheck(review.getReviewId());
-        reviewDao.update(review);
-        return reviewDao.findById(review.getReviewId());
-
+        Review newReview = reviewDao.update(review);
+        Review corReview = reviewDao.findById(review.getReviewId());
+        eventDaoImpl.addEvent(corReview.getUserId(), EventType.REVIEW, EventOperation.UPDATE, corReview.getReviewId());
+        return newReview;
     }
 
     public void delete(int id) {
         CheckForId.idCheck(id);
+        Review delReview = reviewDao.findById(id);
         reviewDao.delete(id);
+        eventDaoImpl.addEvent(delReview.getUserId(), EventType.REVIEW, EventOperation.REMOVE, delReview.getReviewId());
     }
 
     public void addLikeOrDislike(int reviewId, int userId, String eventType) {

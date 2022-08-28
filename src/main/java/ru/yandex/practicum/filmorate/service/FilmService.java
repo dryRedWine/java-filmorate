@@ -4,9 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
-import ru.yandex.practicum.filmorate.dao.LikesDao;
+import ru.yandex.practicum.filmorate.dao.*;
+import ru.yandex.practicum.filmorate.dao.impl.EventDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.eventEnum.EventOperation;
 import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
@@ -23,7 +24,7 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final LikesDao likesDao;
 
-    private final EventService eventService;
+    private final EventDaoImpl eventDaoImpl;
 
     private final FilmDirectorDao filmDirectorDao;
 
@@ -32,11 +33,10 @@ public class FilmService {
     private final FilmGenreDao filmGenreDao;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, EventService eventService) {
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, FilmDirectorDao filmDirectorDao, DirectorDao directorDao, FilmGenreDao filmGenreDao) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, EventDaoImpl eventDaoImpl, FilmDirectorDao filmDirectorDao, DirectorDao directorDao, FilmGenreDao filmGenreDao) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
-        this.eventService = eventService;
+        this.eventDaoImpl = eventDaoImpl;
         this.filmDirectorDao = filmDirectorDao;
         this.directorDao = directorDao;
         this.filmGenreDao = filmGenreDao;
@@ -108,13 +108,14 @@ public class FilmService {
         CheckForId.idCheck(film_id, favId);
         likesDao.putLike(film_id, favId);
         log.info("+1 лайк");
-        eventService.addEvent(favId, EventType.LIKE, EventOperation.ADD, film_id);
+        eventDaoImpl.addEvent(favId, EventType.LIKE, EventOperation.ADD, film_id);
     }
 
     public void deleteLikeToFilm(Long film_id, Long hateId) throws NegativeIdException {
         CheckForId.idCheck(film_id, hateId);
         likesDao.deleteLike(film_id, hateId);
         log.info("-1 лайк");
+        eventDaoImpl.addEvent(hateId, EventType.LIKE, EventOperation.REMOVE, film_id);
     }
 
     public List<Film> getPopularFilms(Long count) throws NegativeIdException {

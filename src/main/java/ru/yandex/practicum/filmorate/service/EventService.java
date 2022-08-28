@@ -30,9 +30,4 @@ public class EventService {
     public List<Event> getEventUserById(long userId) {
         return eventDaoImpl.getEventUserById(userId);
     }
-
-    public Event getEventById(long eventId) {
-        return eventDaoImpl.getEventById(eventId);
-    }
-
 }

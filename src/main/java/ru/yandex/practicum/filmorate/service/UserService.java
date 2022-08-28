@@ -5,9 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.UserStorage;
+import ru.yandex.practicum.filmorate.dao.impl.EventDaoImpl;
 import ru.yandex.practicum.filmorate.dao.impl.FriendsDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventOperation;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
@@ -23,10 +26,13 @@ public class UserService {
     private final UserStorage userStorage;
     private final FriendsDaoImpl friendsDao;
 
+    private final EventDaoImpl eventDaoImpl;
+
     @Autowired
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendsDaoImpl friendsDao) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendsDaoImpl friendsDao, EventDaoImpl eventDaoImpl) {
         this.userStorage = userStorage;
         this.friendsDao = friendsDao;
+        this.eventDaoImpl = eventDaoImpl;
     }
 
     private static void additionalCheck(User user) throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
@@ -90,6 +96,7 @@ public class UserService {
         if (userStorage.contains(id) && userStorage.contains(friendId)) {
             friendsDao.saveFriend(id, friendId);
             log.info("Пользователь успешно добавлен в друзья :)");
+            eventDaoImpl.addEvent(id, EventType.FRIEND, EventOperation.ADD, friendId);
         } else {
             log.error("Передан несуществующий id");
             throw new InvalidIdInPathException("Передан несуществующий id");
@@ -101,6 +108,7 @@ public class UserService {
         if (userStorage.contains(id) && userStorage.contains(friendId)) {
             friendsDao.deleteFriends(id, friendId);
             log.info("Пользователь успешно удален из друзей :(");
+            eventDaoImpl.addEvent(id, EventType.FRIEND, EventOperation.REMOVE, friendId);
         } else {
             log.error("Передан несуществующий id");
             throw new InvalidIdInPathException("Передан несуществующий id");
