@@ -4,14 +4,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.*;
+import ru.yandex.practicum.filmorate.dao.FilmStorage;
+import ru.yandex.practicum.filmorate.dao.LikesDao;
 import ru.yandex.practicum.filmorate.exceptions.*;
-import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventOperation;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,6 +23,8 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final LikesDao likesDao;
 
+    private final EventService eventService;
+
     private final FilmDirectorDao filmDirectorDao;
 
     private final DirectorDao directorDao;
@@ -29,9 +32,11 @@ public class FilmService {
     private final FilmGenreDao filmGenreDao;
 
     @Autowired
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, EventService eventService) {
     public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, FilmDirectorDao filmDirectorDao, DirectorDao directorDao, FilmGenreDao filmGenreDao) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
+        this.eventService = eventService;
         this.filmDirectorDao = filmDirectorDao;
         this.directorDao = directorDao;
         this.filmGenreDao = filmGenreDao;
@@ -103,6 +108,7 @@ public class FilmService {
         CheckForId.idCheck(film_id, favId);
         likesDao.putLike(film_id, favId);
         log.info("+1 лайк");
+        eventService.addEvent(favId, EventType.LIKE, EventOperation.ADD, film_id);
     }
 
     public void deleteLikeToFilm(Long film_id, Long hateId) throws NegativeIdException {
