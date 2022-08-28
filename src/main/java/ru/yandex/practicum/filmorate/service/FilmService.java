@@ -4,8 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
-import ru.yandex.practicum.filmorate.dao.LikesDao;
+import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -22,11 +21,22 @@ public class FilmService {
     @Qualifier("filmDbStorage")
     private final FilmStorage filmStorage;
     private final LikesDao likesDao;
+    private final DirectorDao directorDao;
+    private final FilmDirectorDao filmDirectorDao;
+
+    private final FilmGenreDao filmGenreDao;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage,
+                       LikesDao likesDao,
+                       DirectorDao directorDao,
+                       FilmDirectorDao filmDirectorDao,
+                       FilmGenreDao filmGenreDao) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
+        this.directorDao = directorDao;
+        this.filmDirectorDao = filmDirectorDao;
+        this.filmGenreDao = filmGenreDao;
     }
 
     private static final LocalDate DATE = LocalDate.of(1895, 12, 28);

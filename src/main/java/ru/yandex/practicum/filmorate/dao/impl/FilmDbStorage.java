@@ -75,9 +75,11 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
 
         long filmId = Objects.requireNonNull(keyHolder.getKey()).longValue();
-        film.setId(filmId);
+        //        Заполнение таблицы film_genre
+        if (film.getGenres() != null)
+            filmGenreDao.saveFilmGenre(filmId, film.getGenres());
         log.info("Фильм успешно сохранен в таблице films");
-        return film;
+        return getFilmById(filmId);
     }
 
 
@@ -99,7 +101,11 @@ public class FilmDbStorage implements FilmStorage {
     public Film getFilmById(long filmId) {
         // выполняем запрос к базе данных.
         String sql = "SELECT * FROM FILMS WHERE id = ?";
-        return jdbcTemplate.queryForObject(sql, this::makeFilm, filmId);
+        Film resFilm = jdbcTemplate.queryForObject(sql, this::makeFilm, filmId);
+        if (resFilm != null) {
+            resFilm.setGenres(filmGenreDao.getFilmGenreById(filmId));
+        }
+        return resFilm;
     }
 
 
@@ -141,6 +147,12 @@ public class FilmDbStorage implements FilmStorage {
     private Long makeFilmId(ResultSet rs, int i) throws SQLException {
         return rs.getLong("id");
     }
+
+    private Long makeFilmIdAndCount(ResultSet rs, int i) throws SQLException {
+        System.out.println(rs.getLong("count"));
+        return rs.getLong("id");
+    }
+
     @Override
     public int getSize() {
         return 0;
@@ -156,8 +168,9 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID " +
                 "WHERE f.name ILIKE ? " +
                 "GROUP BY f.ID " +
-                "ORDER BY COUNT(l.USER_ID) DESC";
-        List<Long> filmsByQuery = jdbcTemplate.query(sql, this::makeFilmId, "%" + query + "%");
+                "ORDER BY count_likes DESC";
+        List<Long> filmsByQuery = jdbcTemplate.query(sql, this::makeFilmId, "'%" + query + "%'");
+        System.out.println(filmsByQuery);
         return filmsByQuery.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
@@ -167,15 +180,16 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> searchFilmsByDirector(String query) {
         log.info("log перед выполнением запроса к бд");
         // Не забыть про пробелы!
-        String sql = "SELECT DISTINCT fd.FIlM_ID, " +
-                "COUNT(l.USER_ID) AS count_likes " +
-                "FROM directors AS d " +
-                "LEFT OUTER JOIN film_directors AS fd ON d.ID = fd.director_id " +
-                "LEFT OUTER JOIN likes AS l ON fd.film_id = l.FILM_ID " +
-                "WHERE d.name ILIKE ? " +
-                "GROUP BY fd.FIlM_ID " +
-                "ORDER BY COUNT(l.USER_ID) DESC";
-        List<Long> filmsByQuery = jdbcTemplate.query(sql, this::makeFilmId, "%" + query + "%");
+        String sql = "SELECT DISTINCT fd.FIlM_ID       AS id, " +
+                "                COUNT(l.USER_ID) AS count_likes " +
+                "FROM directors AS d\n" +
+                "         LEFT OUTER JOIN film_directors AS fd ON d.ID = fd.director_id\n" +
+                "         LEFT OUTER JOIN likes AS l ON id = l.FILM_ID\n" +
+                "WHERE d.name ILIKE ?\n" +
+                "GROUP BY id\n" +
+                "ORDER BY COUNT(l.USER_ID) DESC;";
+        List<Long> filmsByQuery = jdbcTemplate.query(sql, this::makeFilmId, "'%" + query + "%'");
+        System.out.println(filmsByQuery);
         return filmsByQuery.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
@@ -185,16 +199,22 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> searchFilmsByDirectorOrTitle(String query) {
         log.info("log перед выполнением запроса к бд");
         // Не забыть про пробелы!
-        String sql = "SELECT DISTINCT f.ID, " +
-                "COUNT(l.USER_ID) AS count_likes " +
-                "FROM directors AS d " +
-                "LEFT OUTER JOIN film_directors AS fd ON d.ID = fd.director_id " +
-                "LEFT OUTER JOIN likes AS l ON fd.film_id = l.FILM_ID " +
-                "LEFT OUTER JOIN films AS f ON fd.film_id = f.ID " +
-                "WHERE d.name ILIKE ? OR f.name ILIKE ?" +
-                "GROUP BY f.ID " +
-                "ORDER BY COUNT(l.USER_ID) DESC";
-        List<Long> filmsByQuery = jdbcTemplate.query(sql, this::makeFilmId, "%" + query + "%", "%" + query + "%");
+        String sql = "SELECT DISTINCT f.ID,\n" +
+                "                COUNT(l.USER_ID) AS count_likes\n" +
+                "FROM directors AS d \n" +
+                "         LEFT OUTER JOIN film_directors AS fd ON d.ID = fd.director_id\n" +
+                "         LEFT OUTER JOIN films AS f ON fd.film_id = f.ID\n" +
+                "         LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
+                "WHERE d.name ILIKE ?\n" +
+                "   OR f.name ILIKE ?\n" +
+                "GROUP BY f.ID\n" +
+                "ORDER BY COUNT(l.USER_ID) DESC;";
+        List<Long> filmsByQuery = jdbcTemplate.query(
+                sql,
+                this::makeFilmId,
+                "'%" + query + "%'",
+                "'%" + query + "%'");
+        System.out.println(filmsByQuery);
         return filmsByQuery.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
