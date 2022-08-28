@@ -60,4 +60,7 @@ public class Film {
         return values;
     }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

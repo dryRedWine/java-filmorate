@@ -77,7 +77,7 @@ public class FilmDirectorDaoImpl implements FilmDirectorDao {
     }
 
     @Override
-    public Film updateFilmDirector(Film film) {
+    public void updateFilmDirector(Film film) {
         jdbcTemplate.update("DELETE FROM FILM_DIRECTORS WHERE FILM_ID = ?", film.getId());
         String sqlQuery = "INSERT INTO FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) VALUES ( ?, ?)";
 
@@ -88,7 +88,6 @@ public class FilmDirectorDaoImpl implements FilmDirectorDao {
             );
         }
         log.debug("Режиссеры фильма {} обновлены в базе данных", film);
-        return film;
     }
 
     private Director mapRowToDirector(ResultSet rs, int rowNum) throws SQLException {

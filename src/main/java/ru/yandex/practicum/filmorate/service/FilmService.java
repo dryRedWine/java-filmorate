@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
-import ru.yandex.practicum.filmorate.dao.LikesDao;
+import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
@@ -29,7 +29,10 @@ public class FilmService {
     private final FilmGenreDao filmGenreDao;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, FilmDirectorDao filmDirectorDao, DirectorDao directorDao, FilmGenreDao filmGenreDao) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage,
+                       LikesDao likesDao, FilmDirectorDao filmDirectorDao,
+                       DirectorDao directorDao,
+                       FilmGenreDao filmGenreDao) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
         this.filmDirectorDao = filmDirectorDao;
@@ -46,14 +49,7 @@ public class FilmService {
         }
         if (!filmStorage.contains(film)) {
             log.info("Данный фильм добавлен");
-            film = filmStorage.saveFilm(film);
-            if (film.getGenres() != null) {
-                filmGenreDao.saveFilmGenre(film.getId(), film.getGenres());
-            }
-            if (film.getDirectors() != null) {
-                filmDirectorDao.saveFilmDirector(film.getId(), film.getDirectors());
-            }
-            return film;
+            return filmStorage.saveFilm(film);
         } else {
             log.error("Данный фильм уже добавлен");
             throw new AlreadyExistException("Данный фильм уже добавлен");
@@ -93,10 +89,7 @@ public class FilmService {
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
         log.info("Заданный пользователь успешно возвращен");
-        Film film = filmStorage.getFilmById(id);
-        film.setGenres(filmGenreDao.getFilmGenreById(id));
-        filmDirectorDao.setFilmDirector(film);
-        return film;
+        return filmStorage.getFilmById(id);
     }
 
     public void putLikeToFilm(Long film_id, Long favId) throws NegativeIdException {
