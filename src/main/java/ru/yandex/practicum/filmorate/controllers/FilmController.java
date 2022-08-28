@@ -78,4 +78,9 @@ public class FilmController {
                                  @PathVariable(value = "userId") Long userId) {
         filmService.deleteLikeToFilm(id, userId);
     }
+
+    @GetMapping("/films/director/{directorId}")
+    public List<Film> sortByFilm(@PathVariable int directorId, @RequestParam String sortBy) {
+        return filmService.findAllFilmsOfDirectorSorted(directorId, sortBy);
+    }
 }

@@ -71,11 +71,9 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
 
         long filmId = Objects.requireNonNull(keyHolder.getKey()).longValue();
-//        Заполнение таблицы film_genre
-        if (film.getGenres() != null)
-            filmGenreDao.saveFilmGenre(filmId, film.getGenres());
+        film.setId(filmId);
         log.info("Фильм успешно сохранен в таблице films");
-        return getFilmById(filmId);
+        return film;
     }
 
 
@@ -98,11 +96,7 @@ public class FilmDbStorage implements FilmStorage {
     public Film getFilmById(long filmId) {
         // выполняем запрос к базе данных.
         String sql = "SELECT * FROM FILMS WHERE id = ?";
-        Film resFilm = jdbcTemplate.queryForObject(sql, this::makeFilm, filmId);
-        if (resFilm != null) {
-            resFilm.setGenres(filmGenreDao.getFilmGenreById(filmId));
-        }
-        return resFilm;
+        return jdbcTemplate.queryForObject(sql, this::makeFilm, filmId);
     }
 
 
