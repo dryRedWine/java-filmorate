@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
 import ru.yandex.practicum.filmorate.exceptions.NotBurnYetException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
@@ -81,5 +82,10 @@ public class UserController {
         userService.deleteFriendById(id, friendId);
     }
 
+    @GetMapping("/{id}/feed")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Event> getFeed() {
+        return null;
+    }
 
 }
