@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
 import ru.yandex.practicum.filmorate.dao.LikesDao;
+import ru.yandex.practicum.filmorate.dao.UserStorage;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
@@ -20,11 +21,13 @@ public class FilmService {
     @Qualifier("filmDbStorage")
     private final FilmStorage filmStorage;
     private final LikesDao likesDao;
+    private final UserStorage userStorage;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, UserStorage userStorage) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
+        this.userStorage = userStorage;
     }
 
     private static final LocalDate DATE = LocalDate.of(1895, 12, 28);
@@ -84,7 +87,10 @@ public class FilmService {
     }
 
     public List<Film> getCommonFilms(long userId, long friendId) {
-        log.info("Cписок фильмов, отсортированных по популярности.");
-        return filmStorage.getCommonFilms(userId, friendId);
+        if (userStorage.contains(userId) & userStorage.contains(friendId)) {
+            log.info("Cписок фильмов, отсортированных по популярности.");
+            return filmStorage.getCommonFilms(userId, friendId);
+        }
+        else throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
     }
 }
