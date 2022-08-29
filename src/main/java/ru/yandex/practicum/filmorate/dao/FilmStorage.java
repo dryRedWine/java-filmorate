@@ -21,4 +21,10 @@ public interface FilmStorage {
     Film update(Film film);
 
     List<Film> getPopularFilms(long film_id);
+
+    List<Film> searchFilmsByTitle(String query);
+
+    List<Film> searchFilmsByDirector(String query);
+
+    List<Film> searchFilmsByDirectorOrTitle(String query);
 }

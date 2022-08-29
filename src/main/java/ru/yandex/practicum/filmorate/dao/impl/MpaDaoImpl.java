@@ -28,7 +28,10 @@ public class MpaDaoImpl implements MpaDao {
     }
 
     private @Valid Mpa mapRowToMpa(ResultSet rs, int rowNum) throws SQLException {
-        return Mpa.builder().id(rs.getInt("id")).name(rs.getString("name")).build();
+        return Mpa.builder()
+                .id(rs.getInt("id"))
+                .name(rs.getString("name"))
+                .build();
     }
 
     @Override

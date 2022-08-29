@@ -28,8 +28,9 @@ public class FilmGenreDaoImpl implements FilmGenreDao {
     @Override
     public void saveFilmGenre(long filmId, LinkedHashSet<Genre> genres) {
         String sqlQuery = "MERGE INTO FILM_GENRE KEY (film_id, genre_id) VALUES (?, ?)";
-        for (Genre genre : genres)
+        for (Genre genre : genres) {
             jdbcTemplate.update(sqlQuery, filmId, genre.getId());
+        }
     }
 
     @Override
