@@ -81,11 +81,8 @@ public class FilmController {
 
     @GetMapping("/films/common")
     @ResponseStatus(HttpStatus.OK)
-    public List<Film> getCommonFilms(@RequestParam(value = "userId") Long userId,
+    public Collection<Film> getCommonFilms(@RequestParam(value = "userId") Long userId,
                                      @RequestParam(value = "friendId" ) Long friendId) {
-        if (filmService.getCommonFilms(userId, friendId).isEmpty()) {
-            return null;
-        }
         return filmService.getCommonFilms(userId, friendId);
     }
 }
