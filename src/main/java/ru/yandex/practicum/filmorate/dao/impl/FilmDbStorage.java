@@ -150,20 +150,26 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getCommonFilms(long userId, long friendId){
-        String sqlQuery = "SELECT f.id, " +
-                "f.name, " +
-                "f.description, " +
-                "f.release_date, " +
-                "f.duration, " +
-                "f.id AS film_id, " +
-                "r.ID AS MPA_ID, " +
-                //"r.NAME AS rateName\n" +
-                "FROM films AS f \n" +
-                "JOIN mpa AS r on f.id = r.id \n" +
-                "LEFT JOIN likes AS l ON f.id = l.film_id\n" +
-                "WHERE l.user_id = ? or l.user_id = ? \n" +
-                "GROUP BY f.id\n" +
-                "ORDER BY COUNT(l.user_id) DESC ";
+        String sqlQuery = "SELECT DISTINCT f.id,\n" +
+                "                f.name,\n" +
+                "                f.description,\n" +
+                "                f.release_date,\n" +
+                "                f.duration,\n" +
+                "                COUNT(l.film_id),\n" +
+                "                f.mpa_id,\n" +
+                "                m.name,\n" +
+                "FROM films AS f\n" +
+                "         LEFT JOIN mpa AS m on M.id = F.mpa_id\n" +
+                "         LEFT JOIN likes AS l on f.id = l.film_id\n" +
+                "         LEFT JOIN film_genre AS fg on f.id = fg.film_id\n" +
+                "         LEFT JOIN genres g on fg.genre_id = g.id\n" +
+                "WHERE f.id IN (SELECT l_user.film_id\n" +
+                "               FROM likes AS l_user\n" +
+                "               JOIN likes AS l_frend on l_frend.film_id =l_user.film_id\n" +
+                "               WHERE l_user.user_id = ?\n" +
+                "               AND l_frend.user_id = ?)\n" +
+                "GROUP BY f.id, fg.genre_id\n" +
+                "ORDER BY COUNT(l.film_id) DESC;";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, userId, friendId);
         return commonFilms.stream()
                 .map(this::getFilmById)
