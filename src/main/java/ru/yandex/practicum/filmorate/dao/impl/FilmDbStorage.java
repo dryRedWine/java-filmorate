@@ -157,7 +157,7 @@ public class FilmDbStorage implements FilmStorage {
                 "f.duration, " +
                 "f.id AS film_id, " +
                 "r.ID AS MPA_ID, " +
-                "r.NAME AS rateName\n" +
+                //"r.NAME AS rateName\n" +
                 "FROM films AS f \n" +
                 "JOIN mpa AS r on f.id = r.id \n" +
                 "LEFT JOIN likes AS l ON f.id = l.film_id\n" +

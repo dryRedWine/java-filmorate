@@ -71,14 +71,19 @@ public class FilmService {
 
     public void putLikeToFilm(Long film_id, Long favId) throws NegativeIdException {
         CheckForId.idCheck(film_id, favId);
-        likesDao.putLike(film_id, favId);
-        log.info("+1 лайк");
+        if (filmStorage.contains(film_id) && userStorage.contains(favId)) {
+            likesDao.putLike(film_id, favId);
+            log.info("+1 лайк");
+        } else
+            throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
     }
 
     public void deleteLikeToFilm(Long film_id, Long hateId) throws NegativeIdException {
         CheckForId.idCheck(film_id, hateId);
-        likesDao.deleteLike(film_id, hateId);
-        log.info("-1 лайк");
+        if (filmStorage.contains(film_id) && userStorage.contains(hateId)) {
+            likesDao.deleteLike(film_id, hateId);
+            log.info("-1 лайк");
+        }
     }
 
     public List<Film> getPopularFilms(Long count) throws NegativeIdException {
