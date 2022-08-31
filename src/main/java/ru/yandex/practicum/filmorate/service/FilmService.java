@@ -149,6 +149,9 @@ public class FilmService {
             log.info("Вывод рейтинга фильмов по году");
             return filmStorage.getPopularFilmsOrderByGenre(genreId, count);
         }
+        if (genreId.isEmpty()) {
+            return filmStorage.getPopularFilmsOrderByYear(year, count);
+        }
             log.info("Cписок фильмов, по жанру и за указанный год.");
         return filmStorage.getPopularFilmsOrderByGenreYear(genreId, year, count) ;
     }

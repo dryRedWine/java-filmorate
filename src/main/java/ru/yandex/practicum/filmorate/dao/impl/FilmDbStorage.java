@@ -145,9 +145,10 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id, fg.genre_id\n" +
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id, fg.genre_id, fd.director_id\n" +
                 "FROM films AS f\n" +
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
+                "LEFT JOIN film_directors AS fd ON fd.film_id = f.id\n" +
                 "WHERE YEAR (f.release_date) = ? AND fg.genre_id = ?\n" +
                 "LIMIT ?";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), year.get(), count);
@@ -158,11 +159,12 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilmsOrderByGenre(Optional<Long> genreId, long count) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id, fg.genre_id\n" +
+        String sqlQuery = "        SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id, fg.genre_id, fd.director_id\n" +
                 "FROM films AS f\n" +
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
-                "WHERE fg.genre_id = ?\n" +
-                "LIMIT ?";
+                "LEFT JOIN film_directors AS fd ON fd.film_id = f.id\n" +
+                "WHERE  fg.genre_id = ?\n" +
+                "LIMIT = ?";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), count);
         return commonFilms.stream()
                 .map(this::getFilmById)
@@ -171,9 +173,10 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilmsOrderByYear(Optional<Integer> year, long count) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id, fg.genre_id\n" +
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id, fg.genre_id, fd.director_id\n" +
                 "FROM films AS f\n" +
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
+                "LEFT JOIN film_directors AS fd ON fd.film_id = f.id\n" +
                 "WHERE YEAR (f.release_date) = ?\n" +
                 "LIMIT ?";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, year.get(), count);
