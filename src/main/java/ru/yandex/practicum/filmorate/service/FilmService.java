@@ -83,8 +83,8 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
-    public List<Film> getPopularFilmsOrderByGenreYear(int count, long genreId, int year) {
+    public List<Film> getPopularFilmsOrderByGenreYear( long genreId, int year, int count) {
         log.info("Cписок фильмов, отсортированных по жанру и за указанный год.");
-        return filmStorage.getPopularFilmsOrderByGenreYear(count, genreId, year) ;
+        return filmStorage.getPopularFilmsOrderByGenreYear( genreId, year, count) ;
     }
 }

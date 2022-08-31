@@ -62,7 +62,7 @@ public class FilmController {
 
     //  Возвращает список из первых count фильмов по количеству лайков.
     //  Если значение параметра count не задано, верните первые 10
-    @GetMapping("/films/popular")
+  /*  @GetMapping("/films/popular")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> getPopularFilms(
             @RequestParam(value = "count", defaultValue = "10", required = false) Long count) {
@@ -70,7 +70,7 @@ public class FilmController {
             throw new IncorrectParameterException("Count не может быть меньше 1");
         return filmService.getPopularFilms(count);
     }
-
+*/
     //  Пользователь удаляет лайк фильму
     @DeleteMapping("/films/{id}/like/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -85,6 +85,6 @@ public class FilmController {
             (@RequestParam(value = "limit") int count,
              @RequestParam(value = "genreId" ) Long genreId,
              @RequestParam(value = "year" ) int year) {
-        return filmService.getPopularFilmsOrderByGenreYear(count, genreId, year);
+        return filmService.getPopularFilmsOrderByGenreYear( genreId, year, count);
     }
 }

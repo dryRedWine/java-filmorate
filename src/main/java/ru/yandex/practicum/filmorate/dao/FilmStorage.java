@@ -22,5 +22,5 @@ public interface FilmStorage {
 
     List<Film> getPopularFilms(long film_id);
 
-    List<Film> getPopularFilmsOrderByGenreYear(int count, long genreId, int year);
+    List<Film> getPopularFilmsOrderByGenreYear( long genreId, int year, int count);
 }
