@@ -234,7 +234,7 @@ public class FilmDbStorage implements FilmStorage {
                 "         LEFT JOIN genres AS g ON fg.genre_id = g.id\n" +
                 "         LEFT JOIN film_directors fd on f.id = fd.film_id\n" +
                 "         LEFT JOIN directors AS d ON fd.director_id = d.id\n" +
-                "WHERE fg.genre_id = ? AND YEAR (f.release_date)  ?\n" +
+                "WHERE fg.genre_id = ? AND YEAR (f.release_date) = ?\n" +
                 "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
                 "LIMIT ?";
@@ -261,7 +261,7 @@ public class FilmDbStorage implements FilmStorage {
                 "         LEFT JOIN genres AS g ON fg.genre_id = g.id\n" +
                 "         LEFT JOIN film_directors fd on f.id = fd.film_id\n" +
                 "         LEFT JOIN directors AS d ON fd.director_id = d.id\n" +
-                "WHERE fg.genre_id  ?\n" +
+                "WHERE fg.genre_id = ?\n" +
                 "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
                 "LIMIT ?";
@@ -288,11 +288,11 @@ public class FilmDbStorage implements FilmStorage {
                 "         LEFT JOIN genres AS g ON fg.genre_id = g.id\n" +
                 "         LEFT JOIN film_directors fd on f.id = fd.film_id\n" +
                 "         LEFT JOIN directors AS d ON fd.director_id = d.id\n" +
-                "WHERE YEAR (f.release_date)  ?\n" +
+                "WHERE YEAR (f.release_date) = ?\n" +
                 "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
                 "LIMIT  ?";
-        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId);
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, year.get(), count);
         return commonFilms.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
