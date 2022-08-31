@@ -145,15 +145,15 @@ public class FilmService {
             log.info("Вывод фильмов, по жанру и году.");
             return filmStorage.getPopularFilmsOrderByGenreYear(genreId, year, count);
         }
-        if (genreId.isEmpty() && year.isEmpty()) {
-            log.info("Вывод рейтинга фильмов по количеству лайков");
-            return filmStorage.getPopularFilms(count);
+        if (year.isPresent()) {
+            log.info("Вывод рейтинга фильмов по году");
+            return filmStorage.getPopularFilmsOrderByYear(year, count);
         }
         if (genreId.isPresent()) {
             log.info("Вывод рейтинга фильмов по жанру");
             return filmStorage.getPopularFilmsOrderByGenre(genreId, count);
         }
-        log.info("Вывод рейтинга фильмов по году");
-        return filmStorage.getPopularFilmsOrderByYear(year, count);
+        log.info("Вывод рейтинга фильмов по количеству лайков");
+        return filmStorage.getPopularFilms(count);
     }
 }

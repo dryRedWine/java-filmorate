@@ -163,7 +163,7 @@ public class FilmDbStorage implements FilmStorage {
                 "WHERE fg.genre_id = ? AND YEAR (f.release_date) = ?\n" +
                 "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
-                "LIMIT = ?";
+                "LIMIT ?";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), year.get(), count);
         return commonFilms.stream()
                 .map(this::getFilmById)
@@ -190,7 +190,7 @@ public class FilmDbStorage implements FilmStorage {
                 "WHERE fg.genre_id = ?\n" +
                 "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
-                "LIMIT = ?";
+                "LIMIT ?";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), count);
         return commonFilms.stream()
                 .map(this::getFilmById)
@@ -217,7 +217,7 @@ public class FilmDbStorage implements FilmStorage {
                 "WHERE YEAR (f.release_date) = ?\n" +
                 "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
-                "LIMIT = ?";
+                "LIMIT  ?";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, year.get(), count);
         return commonFilms.stream()
                 .map(this::getFilmById)

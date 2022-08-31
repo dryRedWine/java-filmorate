@@ -89,8 +89,8 @@ public class FilmController {
     @ResponseStatus(HttpStatus.OK)
     public List<Film> getPopularFilmsOrderByGenreYear
             (@RequestParam(value = "count", defaultValue = "10", required = false) long count,
-             @RequestParam(value = "genreId" ) Optional<Long> genreId,
-             @RequestParam(value = "year" ) Optional<Integer> year) {
-        return filmService.getPopularFilmsOrderByGenreYear( genreId, year, count);
+             @RequestParam Optional<Long> genreId,
+             @RequestParam Optional<Integer> year) {
+        return filmService.getPopularFilmsOrderByGenreYear(genreId, year, count);
     }
 }
