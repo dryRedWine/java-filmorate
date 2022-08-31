@@ -141,18 +141,19 @@ public class FilmService {
     }
 
     public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
+        if (genreId.isPresent() && year.isPresent()) {
+            log.info("Вывод фильмов, по жанру и году.");
+            return filmStorage.getPopularFilmsOrderByGenreYear(genreId, year, count);
+        }
         if (genreId.isEmpty() && year.isEmpty()) {
             log.info("Вывод рейтинга фильмов по количеству лайков");
             return filmStorage.getPopularFilms(count);
         }
-        if (year.isEmpty()) {
-            log.info("Вывод рейтинга фильмов по году");
+        if (genreId.isPresent()) {
+            log.info("Вывод рейтинга фильмов по жанру");
             return filmStorage.getPopularFilmsOrderByGenre(genreId, count);
         }
-        if (genreId.isEmpty()) {
-            return filmStorage.getPopularFilmsOrderByYear(year, count);
-        }
-            log.info("Cписок фильмов, по жанру и за указанный год.");
-        return filmStorage.getPopularFilmsOrderByGenreYear(genreId, year, count) ;
+        log.info("Вывод рейтинга фильмов по году");
+        return filmStorage.getPopularFilmsOrderByYear(year, count);
     }
 }
