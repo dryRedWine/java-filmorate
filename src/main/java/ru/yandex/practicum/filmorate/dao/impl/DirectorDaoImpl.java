@@ -91,7 +91,7 @@ public class DirectorDaoImpl implements DirectorDao {
                 "FROM FILMS f " +
                 "WHERE f.ID IN (SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?) " +
 //                "GROUP BY f.ID " +
-                "ORDER BY f.RELEASE_DATE;";
+                "ORDER BY f.RELEASE_DATE";
         return jdbcTemplate.query(sqlQuery, this::makeFilm, id);
     }
 
@@ -102,15 +102,14 @@ public class DirectorDaoImpl implements DirectorDao {
                 "FROM LIKES l JOIN FILMS f ON l.FILM_ID = f.ID JOIN MPA m ON f.MPA_ID = m.ID" +
                 " WHERE f.ID IN (SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?)" +
                 " GROUP BY f.ID" +
-                " ORDER BY RATING;";
+                " ORDER BY RATING";
         List<Film> sortedFilms = jdbcTemplate.query(sqlQuery, this::makeFilm, id);
 
         if (sortedFilms.isEmpty()) { 
             sqlQuery = "SELECT f.ID, f.NAME, f.RELEASE_DATE, f.DESCRIPTION, f.DURATION," +
                     " m.ID, m.NAME  " +
                     "FROM FILMS f JOIN MPA m ON f.MPA_ID = m.ID " +
-                    "WHERE f.ID IN (SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?) " +
-                    ";";
+                    "WHERE f.ID IN (SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?) ";
             sortedFilms = jdbcTemplate.query(sqlQuery, this::makeFilm, id);
         }
 

@@ -5,10 +5,8 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
-import ru.yandex.practicum.filmorate.dao.MpaDao;
+import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
 
 import javax.validation.Valid;
 import java.sql.Date;
@@ -28,12 +26,17 @@ public class FilmDbStorage implements FilmStorage {
 
     private final MpaDao mpaDao;
 
+    private final FilmDirectorDao filmDirectorDao;
     private final FilmGenreDao filmGenreDao;
 
-    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaDao mpaDao, FilmGenreDao filmGenreDao){
+    public FilmDbStorage(JdbcTemplate jdbcTemplate,
+                         MpaDao mpaDao,
+                         FilmGenreDao filmGenreDao,
+                         FilmDirectorDao filmDirectorDao){
         this.jdbcTemplate=jdbcTemplate;
         this.mpaDao = mpaDao;
         this.filmGenreDao = filmGenreDao;
+        this.filmDirectorDao = filmDirectorDao;
     }
     
 
@@ -71,9 +74,14 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
 
         long filmId = Objects.requireNonNull(keyHolder.getKey()).longValue();
-        film.setId(filmId);
+        //        Заполнение таблицы film_genre
+        if (film.getGenres() != null)
+            filmGenreDao.saveFilmGenre(filmId, film.getGenres());
+        //        Заполнение таблицы film_directors
+        if (film.getDirectors() != null)
+            filmDirectorDao.saveFilmDirector(filmId, film.getDirectors());
         log.info("Фильм успешно сохранен в таблице films");
-        return film;
+        return getFilmById(filmId);
     }
 
 
@@ -96,7 +104,13 @@ public class FilmDbStorage implements FilmStorage {
     public Film getFilmById(long filmId) {
         // выполняем запрос к базе данных.
         String sql = "SELECT * FROM FILMS WHERE id = ?";
-        return jdbcTemplate.queryForObject(sql, this::makeFilm, filmId);
+        Film resFilm = jdbcTemplate.queryForObject(sql, this::makeFilm, filmId);
+        if (resFilm != null) {
+            resFilm.setGenres(filmGenreDao.getFilmGenreById(filmId));
+            filmDirectorDao.setFilmDirector(resFilm);
+        }
+
+        return resFilm;
     }
 
 
@@ -125,7 +139,7 @@ public class FilmDbStorage implements FilmStorage {
                         " l.USER_ID\n" +
                         "FROM films AS f\n" +
                         "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
-                        "GROUP BY f.ID, l.USER_ID \n" +
+                        "GROUP BY f.ID\n" +
                         "ORDER BY COUNT(l.USER_ID) DESC\n" +
                         "LIMIT ?";
         List<Long> popularity = jdbcTemplate.query(sqlQuery, this::makeFilmId, count);
@@ -142,6 +156,65 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public int getSize() {
         return 0;
+    }
+
+    @Override
+    public List<Film> searchFilmsByTitle(String query) {
+        log.info("log перед выполнением запроса к бд");
+        // Не забыть про пробелы!
+        String sql = "SELECT DISTINCT f.ID, " +
+                "COUNT(l.USER_ID) AS count_likes " +
+                "FROM films AS f " +
+                "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID " +
+                "WHERE f.name ILIKE ? " +
+                "GROUP BY f.ID " +
+                "ORDER BY count_likes DESC";
+        List<Long> filmsByQuery = jdbcTemplate.query(sql, this::makeFilmId, '%' + query + '%');
+        return filmsByQuery.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> searchFilmsByDirector(String query) {
+        log.info("log перед выполнением запроса к бд");
+        // Не забыть про пробелы!
+        String sql = "SELECT DISTINCT fd.FIlM_ID       AS id, " +
+                "                COUNT(l.USER_ID) AS count_likes " +
+                "FROM directors AS d\n" +
+                "         LEFT OUTER JOIN film_directors AS fd ON d.ID = fd.director_id\n" +
+                "         LEFT OUTER JOIN likes AS l ON id = l.FILM_ID\n" +
+                "WHERE d.name ILIKE ?\n" +
+                "GROUP BY id\n" +
+                "ORDER BY count_likes DESC;";
+        List<Long> filmsByQuery = jdbcTemplate.query(sql, this::makeFilmId, '%' + query + '%');
+        return filmsByQuery.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> searchFilmsByDirectorOrTitle(String query) {
+        log.info("log перед выполнением запроса к бд");
+        // Не забыть про пробелы!
+        String sql = "SELECT DISTINCT f.ID,\n" +
+                "                COUNT(l.USER_ID) AS count_likes\n" +
+                "FROM FILMS AS f\n" +
+                "         LEFT OUTER JOIN film_directors AS fd ON f.ID = fd.FILM_ID\n" +
+                "         LEFT OUTER JOIN DIRECTORS AS d ON fd.DIRECTOR_ID = d.ID\n" +
+                "         LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
+                "WHERE d.name ILIKE ?\n" +
+                "   OR f.name ILIKE ?\n" +
+                "GROUP BY f.ID\n" +
+                "ORDER BY count_likes DESC";
+        List<Long> filmsByQuery = jdbcTemplate.query(
+                sql,
+                this::makeFilmId,
+                '%' + query + '%',
+                '%' + query + '%');
+        return filmsByQuery.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
     }
 
     @Override

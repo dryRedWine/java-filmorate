@@ -23,6 +23,12 @@ public interface FilmStorage {
 
     List<Film> getPopularFilms(long film_id);
 
+    List<Film> searchFilmsByTitle(String query);
+
+    List<Film> searchFilmsByDirector(String query);
+
+    List<Film> searchFilmsByDirectorOrTitle(String query);
+
     List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count);
 
     List<Film> getPopularFilmsOrderByGenre(Optional<Long> genreId, long count);

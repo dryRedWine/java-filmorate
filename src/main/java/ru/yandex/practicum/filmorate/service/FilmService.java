@@ -47,14 +47,7 @@ public class FilmService {
         }
         if (!filmStorage.contains(film)) {
             log.info("Данный фильм добавлен");
-            film = filmStorage.saveFilm(film);
-            if (film.getGenres() != null) {
-                filmGenreDao.saveFilmGenre(film.getId(), film.getGenres());
-            }
-            if (film.getDirectors() != null) {
-                filmDirectorDao.saveFilmDirector(film.getId(), film.getDirectors());
-            }
-            return film;
+            return filmStorage.saveFilm(film);
         } else {
             log.error("Данный фильм уже добавлен");
             throw new AlreadyExistException("Данный фильм уже добавлен");
@@ -94,10 +87,7 @@ public class FilmService {
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
         log.info("Заданный пользователь успешно возвращен");
-        Film film = filmStorage.getFilmById(id);
-        film.setGenres(filmGenreDao.getFilmGenreById(id));
-        filmDirectorDao.setFilmDirector(film);
-        return film;
+        return filmStorage.getFilmById(id);
     }
 
     public void putLikeToFilm(Long film_id, Long favId) throws NegativeIdException {
@@ -140,6 +130,18 @@ public class FilmService {
         return sortedFilms;
     }
 
+    public Collection<Film> searchFilms(String query, List<String> by) {
+        if (by.size() == 1) {
+            if (by.contains("title"))
+                return filmStorage.searchFilmsByTitle(query);
+            else if (by.contains("director"))
+                return filmStorage.searchFilmsByDirector(query);
+            else throw new InvalidIdInPathException("Передан некорректный параметр запроса");
+        } else if (by.size() == 2)
+            return filmStorage.searchFilmsByDirectorOrTitle(query);
+        else
+            throw new InvalidIdInPathException("Передан некорректный параметр запроса");
+    }
     public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
         if (genreId.isPresent() && year.isPresent()) {
             log.info("Вывод фильмов, по жанру и году.");
