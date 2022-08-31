@@ -125,7 +125,7 @@ public class FilmDbStorage implements FilmStorage {
                         " l.USER_ID\n" +
                         "FROM films AS f\n" +
                         "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
-                        "GROUP BY f.ID\n" +
+                        "GROUP BY f.ID, l.USER_ID \n" +
                         "ORDER BY COUNT(l.USER_ID) DESC\n" +
                         "LIMIT ?";
         List<Long> popularity = jdbcTemplate.query(sqlQuery, this::makeFilmId, count);
@@ -133,6 +133,7 @@ public class FilmDbStorage implements FilmStorage {
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
     }
+
 
     private Long makeFilmId(ResultSet rs, int i) throws SQLException {
         return rs.getLong("id");
@@ -218,7 +219,7 @@ public class FilmDbStorage implements FilmStorage {
                 "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
                 "LIMIT  ?";
-        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, year.get(), count);
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId);
         return commonFilms.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
