@@ -4,15 +4,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectPathException;
 import ru.yandex.practicum.filmorate.exceptions.NotBurnYetException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 @RestController
 @RequestMapping("/users")
@@ -81,5 +80,12 @@ public class UserController {
         userService.deleteFriendById(id, friendId);
     }
 
+    @GetMapping("/{id}/recommendations")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> getRecommendations(@PathVariable(value = "id", required = false) Long userId) {
+        if (userId == null)
+            throw new IncorrectPathException("Переменная пути не была передана");
+        return userService.getRecommendations(userId);
+    }
 
 }

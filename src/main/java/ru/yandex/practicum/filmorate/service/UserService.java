@@ -4,16 +4,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.algorithms.slope_one.SlopeOne;
+import ru.yandex.practicum.filmorate.dao.FilmStorage;
+import ru.yandex.practicum.filmorate.dao.LikesDao;
 import ru.yandex.practicum.filmorate.dao.UserStorage;
 import ru.yandex.practicum.filmorate.dao.impl.FriendsDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -22,11 +25,23 @@ public class UserService {
     @Qualifier("userDbStorage")
     private final UserStorage userStorage;
     private final FriendsDaoImpl friendsDao;
+    private final LikesDao likesDao;
+    private final SlopeOne slopeOne;
+
+    @Qualifier("filmDbStorage")
+    private final FilmStorage filmStorage;
 
     @Autowired
-    public UserService(@Qualifier("userDbStorage") UserStorage userStorage, FriendsDaoImpl friendsDao) {
+    public UserService(@Qualifier("userDbStorage") UserStorage userStorage,
+                       FriendsDaoImpl friendsDao,
+                       LikesDao likesDao,
+                       SlopeOne slopeOne,
+                       FilmStorage filmStorage) {
         this.userStorage = userStorage;
         this.friendsDao = friendsDao;
+        this.likesDao = likesDao;
+        this.slopeOne = slopeOne;
+        this.filmStorage = filmStorage;
     }
 
     private static void additionalCheck(User user) throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
@@ -86,7 +101,7 @@ public class UserService {
     }
 
     public void addNewFriendById(long id, long friendId) throws NegativeIdException {
-        CheckForId.idCheck(id, friendId);
+        CheckForId.idCheckEquals(id, friendId);
         if (userStorage.contains(id) && userStorage.contains(friendId)) {
             friendsDao.saveFriend(id, friendId);
             log.info("Пользователь успешно добавлен в друзья :)");
@@ -97,7 +112,7 @@ public class UserService {
     }
 
     public void deleteFriendById(Long id, Long friendId) throws NegativeIdException {
-        CheckForId.idCheck(id, friendId);
+        CheckForId.idCheckEquals(id, friendId);
         if (userStorage.contains(id) && userStorage.contains(friendId)) {
             friendsDao.deleteFriends(id, friendId);
             log.info("Пользователь успешно удален из друзей :(");
@@ -108,11 +123,36 @@ public class UserService {
     }
 
     public Set<User> getMutualFriendsList(Long id, Long otherId) throws NegativeIdException {
-        CheckForId.idCheck(id, otherId);
+        CheckForId.idCheckEquals(id, otherId);
         Set<User> userSet1 = new HashSet<>(friendsDao.getFriendsByUserId(id));
         Set<User> userSet2 = new HashSet<>(friendsDao.getFriendsByUserId(otherId));
         userSet1.retainAll(userSet2);
         log.info("Список общих друзей успешно возвращен");
         return userSet1;
     }
+
+
+    public Collection<Film> getRecommendations(Long userId) {
+        if (!userStorage.contains(userId)) {
+            throw new NotBurnYetException("Пользователя с таким id не существует!");
+        }
+
+        // Запрашиваю список всех пользователей из таблицы likes
+        List<Long> userIdList = likesDao.findAllUserIdFromLikes();
+        List<Long> requestLikes = new ArrayList<>();
+        Map<Long, List<Long>> likes = new HashMap<>();
+        // Запрашиваю список всех пролайканных фильмов и добавляю к соответствующему пользователю
+        for (Long id : userIdList)
+            likes.put(id, likesDao.findAllFilmIdFromLikes(id));
+
+        // Удаляю пользователя, для которого составляются рекомендации
+        if (likes.containsKey(userId)) {
+            requestLikes = likes.get(userId);
+            likes.remove(userId);
+        }
+        return slopeOne.getRecommendations(requestLikes, likes).stream()
+                .map(filmStorage::getFilmById).collect(Collectors.toList());
+    }
+
+
 }

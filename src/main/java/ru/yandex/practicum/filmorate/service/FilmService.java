@@ -61,12 +61,7 @@ public class FilmService {
         if (film.getReleaseDate().isBefore(DATE)) {
             throw new IllegalArgumentException("Выбрана ложная дата релиза");
         }
-        filmStorage.update(film);
-        log.info("Данные о фильме добавлены или обновлены");
-        if (film.getDirectors() != null) {
-            filmDirectorDao.updateFilmDirector(film);
-        }
-        return film;
+        return filmStorage.update(film);
     }
 
     public List<Film> get() {
@@ -93,13 +88,14 @@ public class FilmService {
     }
 
     public void putLikeToFilm(Long film_id, Long favId) throws NegativeIdException {
-        CheckForId.idCheck(film_id, favId);
+        CheckForId.idCheck(film_id);
+        CheckForId.idCheck(favId);
         likesDao.putLike(film_id, favId);
         log.info("+1 лайк");
     }
 
     public void deleteLikeToFilm(Long film_id, Long hateId) throws NegativeIdException {
-        CheckForId.idCheck(film_id, hateId);
+        CheckForId.idCheckEquals(film_id, hateId);
         likesDao.deleteLike(film_id, hateId);
         log.info("-1 лайк");
     }

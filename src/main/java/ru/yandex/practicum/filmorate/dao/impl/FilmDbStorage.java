@@ -127,6 +127,9 @@ public class FilmDbStorage implements FilmStorage {
             filmGenreDao.deleteFilmGenre(film.getId());
             filmGenreDao.saveFilmGenre(film.getId(), film.getGenres());
         }
+        if (film.getDirectors() != null) {
+            filmDirectorDao.updateFilmDirector(film);
+        }
         return getFilmById(film.getId());
     }
 
@@ -137,7 +140,7 @@ public class FilmDbStorage implements FilmStorage {
                         " l.USER_ID\n" +
                         "FROM films AS f\n" +
                         "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
-                        "GROUP BY f.ID\n" +
+                        "GROUP BY f.ID, l.USER_ID \n" +
                         "ORDER BY COUNT(l.USER_ID) DESC\n" +
                         "LIMIT ?";
         List<Long> popularity = jdbcTemplate.query(sqlQuery, this::makeFilmId, count);
