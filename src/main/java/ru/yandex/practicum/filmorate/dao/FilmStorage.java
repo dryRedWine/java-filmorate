@@ -4,6 +4,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface FilmStorage {
     List<Film> findAll();
@@ -21,4 +22,10 @@ public interface FilmStorage {
     Film update(Film film);
 
     List<Film> getPopularFilms(long film_id);
+
+    List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count);
+
+    List<Film> getPopularFilmsOrderByGenre(Optional<Long> genreId, long count);
+
+    List<Film> getPopularFilmsOrderByYear(Optional<Integer> year, long count);
 }

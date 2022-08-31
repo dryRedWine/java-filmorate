@@ -13,6 +13,7 @@ import ru.yandex.practicum.filmorate.utility.CheckForId;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -139,5 +140,16 @@ public class FilmService {
         return sortedFilms;
     }
 
-
+    public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
+        if (genreId.isEmpty() && year.isEmpty()) {
+            log.info("Вывод рейтинга фильмов по количеству лайков");
+            return filmStorage.getPopularFilms(count);
+        }
+        if (year.isEmpty()) {
+            log.info("Вывод рейтинга фильмов по году");
+            return filmStorage.getPopularFilmsOrderByGenre(genreId, count);
+        }
+            log.info("Cписок фильмов, по жанру и за указанный год.");
+        return filmStorage.getPopularFilmsOrderByGenreYear(genreId, year, count) ;
+    }
 }
