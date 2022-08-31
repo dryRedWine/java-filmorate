@@ -17,6 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component("filmDbStorage")
@@ -149,7 +150,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getPopularFilmsOrderByGenreYear(long genreId, int year, int count) {
+    public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
         String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id\n" +
                 "FROM films AS f\n" +
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
