@@ -150,7 +150,7 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
                 "WHERE YEAR (f.release_date) = ? AND fg.genre_id = ?\n" +
                 "LIMIT ?";
-        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId, year, count);
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), year.get(), count);
         return commonFilms.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
@@ -163,7 +163,7 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
                 "WHERE fg.genre_id = ?\n" +
                 "LIMIT ?";
-        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId, count);
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), count);
         return commonFilms.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
@@ -176,7 +176,7 @@ public class FilmDbStorage implements FilmStorage {
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
                 "WHERE YEAR (f.release_date) = ?\n" +
                 "LIMIT ?";
-        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, year, count);
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, year.get(), count);
         return commonFilms.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
