@@ -7,7 +7,7 @@ import java.time.LocalDate;
 import java.util.*;
 
 @Getter
-@Setter
+@EqualsAndHashCode
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
@@ -50,4 +50,17 @@ public class Film {
         this.genres = genres;
     }
 
+    public Map<String, Object> toMap() {
+        Map<String, Object> values = new HashMap<>();
+        values.put("name", name);
+        values.put("description", description);
+        values.put("duration", duration);
+        values.put("releaseDate", releaseDate);
+        values.put("mpa_id", mpa.getId());
+        return values;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }
