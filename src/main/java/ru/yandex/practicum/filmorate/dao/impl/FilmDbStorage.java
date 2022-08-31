@@ -145,7 +145,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id\n" +
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id, fg.genre_id\n" +
                 "FROM films AS f\n" +
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
                 "WHERE YEAR (f.release_date) = ? AND fg.genre_id = ?\n" +
@@ -158,7 +158,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilmsOrderByGenre(Optional<Long> genreId, long count) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id\n" +
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id, fg.genre_id\n" +
                 "FROM films AS f\n" +
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
                 "WHERE fg.genre_id = ?\n" +
@@ -171,7 +171,7 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilmsOrderByYear(Optional<Integer> year, long count) {
-        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id\n" +
+        String sqlQuery = "SELECT f.id, f.name, f.description, f.duration, f.release_date, f.mpa_id, fg.genre_id\n" +
                 "FROM films AS f\n" +
                 "LEFT JOIN film_genre AS fg ON fg.film_id = f.id\n" +
                 "WHERE YEAR (f.release_date) = ?\n" +
