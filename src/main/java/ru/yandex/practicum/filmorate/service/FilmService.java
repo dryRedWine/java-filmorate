@@ -5,9 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.*;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
-import ru.yandex.practicum.filmorate.dao.LikesDao;
-import ru.yandex.practicum.filmorate.dao.UserStorage;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -23,6 +20,9 @@ public class FilmService {
 
     @Qualifier("filmDbStorage")
     private final FilmStorage filmStorage;
+
+    @Qualifier("userDbStorage")
+    private final UserStorage userStorage;
     private final LikesDao likesDao;
 
     private final FilmDirectorDao filmDirectorDao;
@@ -37,7 +37,7 @@ public class FilmService {
                        FilmDirectorDao filmDirectorDao,
                        DirectorDao directorDao,
                        FilmGenreDao filmGenreDao,
-                       UserStorage userStorage) {
+                       @Qualifier("userDbStorage") UserStorage userStorage) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
         this.filmDirectorDao = filmDirectorDao;
@@ -74,7 +74,7 @@ public class FilmService {
 //        log.info("Текущее количество добавленных фильмов: {}", filmStorage.getSize());
         List<Film> films = filmStorage.findAll();
 
-        for(Film film: films) {
+        for (Film film : films) {
             long id = film.getId();
             film.setGenres(filmGenreDao.getFilmGenreById(id));
             filmDirectorDao.setFilmDirector(film);
@@ -119,10 +119,8 @@ public class FilmService {
         if (userStorage.contains(userId) & userStorage.contains(friendId)) {
             log.info("Cписок фильмов, отсортированных по популярности.");
             return filmStorage.getCommonFilms(userId, friendId);
-        }
-        else throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
+        } else throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
     }
-
 
 
     public List<Film> findAllFilmsOfDirectorSorted(long id, String sortBy) {

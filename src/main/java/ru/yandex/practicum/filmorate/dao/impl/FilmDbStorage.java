@@ -5,11 +5,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.FilmDirectorDao;
 import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
-import ru.yandex.practicum.filmorate.dao.MpaDao;
-import ru.yandex.practicum.filmorate.dao.*;
-import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
+import ru.yandex.practicum.filmorate.dao.MpaDao;
+import ru.yandex.practicum.filmorate.model.Film;
 
 import javax.validation.Valid;
 import java.sql.Date;
@@ -28,17 +28,20 @@ public class FilmDbStorage implements FilmStorage {
 
     private final MpaDao mpaDao;
 
+    private final FilmDirectorDao filmDirectorDao;
+
     private final FilmGenreDao filmGenreDao;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          MpaDao mpaDao,
                          FilmGenreDao filmGenreDao,
-                         FilmDirectorDao filmDirectorDao){
-        this.jdbcTemplate=jdbcTemplate;
+                         FilmDirectorDao filmDirectorDao) {
+        this.jdbcTemplate = jdbcTemplate;
         this.mpaDao = mpaDao;
         this.filmGenreDao = filmGenreDao;
+        this.filmDirectorDao = filmDirectorDao;
     }
-    
+
 
     @Override
     public List<Film> findAll() {
@@ -158,7 +161,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     @Override
-    public List<Film> getCommonFilms(long userId, long friendId){
+    public List<Film> getCommonFilms(long userId, long friendId) {
         String sqlQuery = "SELECT DISTINCT f.id,\n" +
                 "                f.name,\n" +
                 "                f.description,\n" +
@@ -166,7 +169,7 @@ public class FilmDbStorage implements FilmStorage {
                 "                f.duration,\n" +
                 "                COUNT(l.film_id),\n" +
                 "                f.mpa_id,\n" +
-                "                m.name,\n" +
+                "                m.name \n" +
                 "FROM films AS f\n" +
                 "         LEFT JOIN mpa AS m on M.id = F.mpa_id\n" +
                 "         LEFT JOIN likes AS l on f.id = l.film_id\n" +
