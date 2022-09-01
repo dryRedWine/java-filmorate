@@ -12,9 +12,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
 import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
@@ -79,7 +76,7 @@ public class UserController {
     @DeleteMapping("/{id}/friends/{friendId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFriendById(@PathVariable(value = "id") Long id,
-                                   @PathVariable(value = "friendId") Long friendId) {
+                                 @PathVariable(value = "friendId") Long friendId) {
         userService.deleteFriendById(id, friendId);
     }
 
