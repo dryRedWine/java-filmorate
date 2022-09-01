@@ -10,7 +10,7 @@ public class CheckForId {
             throw new NegativeIdException("id должен быть строго больше 0");
     }
 
-    public static void idCheck(long id, long secondId){
+    public static void idCheckEquals(long id, long secondId){
         if (id < 1 || secondId < 1)
             throw new NegativeIdException("id должен быть строго больше 0");
         //else if (id == secondId)

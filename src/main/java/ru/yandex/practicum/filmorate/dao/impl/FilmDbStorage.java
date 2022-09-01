@@ -26,11 +26,8 @@ import java.util.stream.Collectors;
 public class FilmDbStorage implements FilmStorage {
 
     private final JdbcTemplate jdbcTemplate;
-
     private final MpaDao mpaDao;
-
     private final FilmDirectorDao filmDirectorDao;
-
     private final FilmGenreDao filmGenreDao;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
@@ -133,6 +130,9 @@ public class FilmDbStorage implements FilmStorage {
             filmGenreDao.deleteFilmGenre(film.getId());
             filmGenreDao.saveFilmGenre(film.getId(), film.getGenres());
         }
+        if (film.getDirectors() != null) {
+            filmDirectorDao.updateFilmDirector(film);
+        }
         return getFilmById(film.getId());
     }
 
@@ -165,16 +165,6 @@ public class FilmDbStorage implements FilmStorage {
         return popularity.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
-    }
-
-
-    private Long makeFilmId(ResultSet rs, int i) throws SQLException {
-        return rs.getLong("id");
-    }
-
-    @Override
-    public int getSize() {
-        return 0;
     }
 
     @Override

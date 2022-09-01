@@ -66,6 +66,9 @@ public class FilmService {
             throw new IllegalArgumentException("Выбрана ложная дата релиза");
         filmStorage.update(film);
         log.info("Данные о фильме добавлены или обновлены");
+        if (film.getDirectors() != null) {
+            filmDirectorDao.updateFilmDirector(film);
+        }
         return film;
     }
 
@@ -93,7 +96,8 @@ public class FilmService {
     }
 
     public void putLikeToFilm(Long film_id, Long favId) throws NegativeIdException {
-        CheckForId.idCheck(film_id, favId);
+        CheckForId.idCheck(film_id);
+        CheckForId.idCheck(favId);
         if (filmStorage.contains(film_id) && userStorage.contains(favId)) {
             likesDao.putLike(film_id, favId);
             log.info("+1 лайк");
@@ -102,7 +106,7 @@ public class FilmService {
     }
 
     public void deleteLikeToFilm(Long film_id, Long hateId) throws NegativeIdException {
-        CheckForId.idCheck(film_id, hateId);
+        CheckForId.idCheckEquals(film_id, hateId);
         if (filmStorage.contains(film_id) && userStorage.contains(hateId)) {
             likesDao.deleteLike(film_id, hateId);
             log.info("-1 лайк");
@@ -164,6 +168,7 @@ public class FilmService {
         else
             throw new InvalidIdInPathException("Передан некорректный параметр запроса");
     }
+
     public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
         if (genreId.isPresent() && year.isPresent()) {
             log.info("Вывод фильмов, по жанру и году.");

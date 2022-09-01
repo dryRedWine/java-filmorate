@@ -3,14 +3,16 @@ package ru.yandex.practicum.filmorate.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
+import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
+import ru.yandex.practicum.filmorate.exceptions.IncorrectPathException;
+import ru.yandex.practicum.filmorate.exceptions.NotBurnYetException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 
@@ -76,7 +78,7 @@ public class FilmController {
     @GetMapping("/films/search")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> searchFilms(@RequestParam(value = "query", required = false) String query,
-                                          @RequestParam(value = "by", required = false) List<String> by) {
+                                        @RequestParam(value = "by", required = false) List<String> by) {
         if (query == null && by == null)
             return filmService.getPopularFilms(10L);
         else if (query == null || by == null)
@@ -94,8 +96,9 @@ public class FilmController {
     @GetMapping("/films/common")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> getCommonFilms(@RequestParam(value = "userId") Long userId,
-                                     @RequestParam(value = "friendId" ) Long friendId) {
+                                           @RequestParam(value = "friendId") Long friendId) {
         return filmService.getCommonFilms(userId, friendId);
+    }
 
     @GetMapping("/films/popular")
     @ResponseStatus(HttpStatus.OK)
@@ -104,6 +107,5 @@ public class FilmController {
              @RequestParam Optional<Long> genreId,
              @RequestParam Optional<Integer> year) {
         return filmService.getPopularFilmsOrderByGenreYear(genreId, year, count);
-
     }
 }

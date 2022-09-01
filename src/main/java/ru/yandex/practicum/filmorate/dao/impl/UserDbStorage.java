@@ -4,8 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Repository;
-import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.dao.UserStorage;
+import ru.yandex.practicum.filmorate.model.User;
 
 import javax.validation.Valid;
 import java.sql.ResultSet;
@@ -81,7 +81,6 @@ public class UserDbStorage implements UserStorage {
 
     }
 
-
     @Override
     public int getSize() {
         return 0;
@@ -92,5 +91,6 @@ public class UserDbStorage implements UserStorage {
         String sqlQuery = "DELETE FROM users WHERE ID = ?";
         jdbcTemplate.update(sqlQuery, userId);
     }
+
 
 }
