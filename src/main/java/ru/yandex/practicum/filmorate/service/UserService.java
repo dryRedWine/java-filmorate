@@ -8,10 +8,13 @@ import ru.yandex.practicum.filmorate.algorithms.slope_one.SlopeOne;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
 import ru.yandex.practicum.filmorate.dao.LikesDao;
 import ru.yandex.practicum.filmorate.dao.UserStorage;
+import ru.yandex.practicum.filmorate.dao.impl.EventDaoImpl;
 import ru.yandex.practicum.filmorate.dao.impl.FriendsDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventOperation;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
@@ -28,6 +31,8 @@ public class UserService {
     private final LikesDao likesDao;
     private final SlopeOne slopeOne;
 
+    private final EventDaoImpl eventDaoImpl;
+
     @Qualifier("filmDbStorage")
     private final FilmStorage filmStorage;
 
@@ -36,12 +41,14 @@ public class UserService {
                        FriendsDaoImpl friendsDao,
                        LikesDao likesDao,
                        SlopeOne slopeOne,
-                       FilmStorage filmStorage) {
+                       FilmStorage filmStorage,
+                       EventDaoImpl eventDaoImpl) {
         this.userStorage = userStorage;
         this.friendsDao = friendsDao;
         this.likesDao = likesDao;
         this.slopeOne = slopeOne;
         this.filmStorage = filmStorage;
+        this.eventDaoImpl = eventDaoImpl;
     }
 
     private static void additionalCheck(User user) throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
@@ -105,6 +112,7 @@ public class UserService {
         if (userStorage.contains(id) && userStorage.contains(friendId)) {
             friendsDao.saveFriend(id, friendId);
             log.info("Пользователь успешно добавлен в друзья :)");
+            eventDaoImpl.addEvent(id, EventType.FRIEND, EventOperation.ADD, friendId);
         } else {
             log.warn("Передан несуществующий id");
             throw new InvalidIdInPathException("Передан несуществующий id");
@@ -116,6 +124,7 @@ public class UserService {
         if (userStorage.contains(id) && userStorage.contains(friendId)) {
             friendsDao.deleteFriends(id, friendId);
             log.info("Пользователь успешно удален из друзей :(");
+            eventDaoImpl.addEvent(id, EventType.FRIEND, EventOperation.REMOVE, friendId);
         } else {
             log.warn("Передан несуществующий id");
             throw new InvalidIdInPathException("Передан несуществующий id");

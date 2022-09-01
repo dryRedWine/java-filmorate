@@ -5,9 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.*;
+import ru.yandex.practicum.filmorate.dao.impl.EventDaoImpl;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventOperation;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
@@ -30,19 +33,23 @@ public class FilmService {
     private final DirectorDao directorDao;
     private final FilmGenreDao filmGenreDao;
 
+    private final EventDaoImpl eventDaoImpl;
+
     @Autowired
     public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage,
                        LikesDao likesDao,
                        FilmDirectorDao filmDirectorDao,
                        DirectorDao directorDao,
                        FilmGenreDao filmGenreDao,
-                       @Qualifier("userDbStorage") UserStorage userStorage) {
+                       @Qualifier("userDbStorage") UserStorage userStorage,
+                       EventDaoImpl eventDaoImpl) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
         this.filmDirectorDao = filmDirectorDao;
         this.directorDao = directorDao;
         this.filmGenreDao = filmGenreDao;
         this.userStorage = userStorage;
+        this.eventDaoImpl = eventDaoImpl;
     }
 
     private static final LocalDate DATE = LocalDate.of(1895, 12, 28);
@@ -99,8 +106,13 @@ public class FilmService {
         CheckForId.idCheck(film_id);
         CheckForId.idCheck(favId);
         if (filmStorage.contains(film_id) && userStorage.contains(favId)) {
-            likesDao.putLike(film_id, favId);
-            log.info("+1 лайк");
+            if(likesDao.contains(film_id, favId)) {
+                eventDaoImpl.addEvent(favId, EventType.LIKE, EventOperation.ADD, film_id);
+            } else {
+                likesDao.putLike(film_id, favId);
+                log.info("+1 лайк");
+                eventDaoImpl.addEvent(favId, EventType.LIKE, EventOperation.ADD, film_id);
+            }
         } else
             throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
     }
@@ -110,6 +122,7 @@ public class FilmService {
         if (filmStorage.contains(film_id) && userStorage.contains(hateId)) {
             likesDao.deleteLike(film_id, hateId);
             log.info("-1 лайк");
+            eventDaoImpl.addEvent(hateId, EventType.LIKE, EventOperation.REMOVE, film_id);
         }
     }
 

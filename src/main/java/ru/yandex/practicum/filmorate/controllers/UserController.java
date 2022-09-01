@@ -6,8 +6,10 @@ import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
 import ru.yandex.practicum.filmorate.exceptions.IllegalLoginException;
 import ru.yandex.practicum.filmorate.exceptions.IncorrectPathException;
 import ru.yandex.practicum.filmorate.exceptions.NotBurnYetException;
+import ru.yandex.practicum.filmorate.model.Event;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.EventService;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
@@ -22,8 +24,11 @@ public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
+    private final EventService eventService;
+
+    public UserController(UserService userService, EventService eventService) {
         this.userService = userService;
+        this.eventService = eventService;
     }
 
     @PostMapping
@@ -95,6 +100,12 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public void deleteUserById(@PathVariable(value = "userId") Long id) {
         userService.deleteUserById(id);
+    }
+
+    @GetMapping("/{id}/feed")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Event> getFeed(@PathVariable(value = "id") Long id) {
+        return eventService.getEventUserById(id);
     }
 
 

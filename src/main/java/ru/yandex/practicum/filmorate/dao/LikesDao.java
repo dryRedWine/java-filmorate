@@ -11,4 +11,6 @@ public interface LikesDao {
     List<Long> findAllFilmIdFromLikes(long userId);
 
     List<Long> findAllUserIdFromLikes();
+
+    Boolean contains(long filmId, long userId);
 }

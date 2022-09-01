@@ -1,5 +1,16 @@
 package ru.yandex.practicum.filmorate.service;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.impl.EventDaoImpl;
+import ru.yandex.practicum.filmorate.model.Event;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventOperation;
+import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
+
+import java.util.List;
+
+@Service
+@Slf4j
 public class EventService {
 
     private final EventDaoImpl eventDaoImpl;

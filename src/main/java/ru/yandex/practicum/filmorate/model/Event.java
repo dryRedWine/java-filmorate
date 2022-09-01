@@ -19,6 +19,6 @@ public class Event {
 
     private EventOperation operation;
 
-    private Instant timestamp;
+    private long timestamp;
 
 }

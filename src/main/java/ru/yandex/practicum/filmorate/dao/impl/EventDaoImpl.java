@@ -1,7 +1,7 @@
 package ru.yandex.practicum.filmorate.dao.impl;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -14,14 +14,20 @@ import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 import java.sql.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
+@Repository
 @Slf4j
-@RequiredArgsConstructor
 public class EventDaoImpl implements EventDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-  private Event mapRowToEvent(ResultSet rs, int rowNum) throws SQLException {
+    @Autowired
+    public EventDaoImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    private Event mapRowToEvent(ResultSet rs, int rowNum) throws SQLException {
         return Event.builder().eventId(rs.getLong("event_id"))
                 .userId(rs.getLong("user_id"))
                 .entityId(rs.getLong("entity_id"))
@@ -31,15 +37,24 @@ public class EventDaoImpl implements EventDao {
                 .build();
     }
 
+    @Override
     public Event addEvent(long userId, EventType eventType, EventOperation eventOperation, long entityId) {
-        return Event.builder().userId(userId)
+
+        Date date = new Date();
+
+        Event event = Event.builder().userId(userId)
                 .eventType(eventType)
                 .operation(eventOperation)
                 .entityId(entityId)
+                .timestamp(date.getTime())
                 .build();
+
+        saveEvent(event);
+
+        return event;
     }
 
-
+    @Override
     public Event saveEvent(Event event) {
 
         String sql = "insert into EVENTS (ENTITY_ID, EVENT_TYPE, EVENT_OPERATION, EVENT_TIMESTAMP, USER_ID)" +
@@ -60,6 +75,7 @@ public class EventDaoImpl implements EventDao {
         return event;
     }
 
+    @Override
     public List<Event> getEventUserById(long userId) {
         String sql = "SELECT * FROM EVENTS WHERE USER_ID = ?";
         return jdbcTemplate.query(sql, this::mapRowToEvent, userId);

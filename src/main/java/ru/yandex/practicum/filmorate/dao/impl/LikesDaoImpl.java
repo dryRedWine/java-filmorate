@@ -14,12 +14,8 @@ public class LikesDaoImpl implements LikesDao {
 
     private final JdbcTemplate jdbcTemplate;
 
-    private final EventDaoImpl eventDaoImpl;
-
-    public LikesDaoImpl(JdbcTemplate jdbcTemplate, EventDaoImpl eventDaoImpl) {
+    public LikesDaoImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-
-        this.eventDaoImpl = eventDaoImpl;
     }
 
     @Override
@@ -54,6 +50,13 @@ public class LikesDaoImpl implements LikesDao {
 
     private Long makeFilmId(ResultSet rs, int rowNum) throws SQLException {
         return rs.getLong("film_id");
+
+    }
+
+    @Override
+    public Boolean contains(long filmId, long userId) {
+        return jdbcTemplate.query("SELECT * FROM LIKES WHERE FILM_ID = ? and USER_ID = ?",
+                ResultSet::next, filmId, userId);
 
     }
 }
