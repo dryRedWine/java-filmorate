@@ -22,6 +22,9 @@ public class FilmService {
 
     @Qualifier("filmDbStorage")
     private final FilmStorage filmStorage;
+
+    @Qualifier("userDbStorage")
+    private final UserStorage userStorage;
     private final LikesDao likesDao;
 
     private final FilmDirectorDao filmDirectorDao;
@@ -31,21 +34,26 @@ public class FilmService {
     private final FilmGenreDao filmGenreDao;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, FilmDirectorDao filmDirectorDao, DirectorDao directorDao, FilmGenreDao filmGenreDao) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage,
+                       LikesDao likesDao,
+                       FilmDirectorDao filmDirectorDao,
+                       DirectorDao directorDao,
+                       FilmGenreDao filmGenreDao,
+                       @Qualifier("userDbStorage") UserStorage userStorage) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
         this.filmDirectorDao = filmDirectorDao;
         this.directorDao = directorDao;
         this.filmGenreDao = filmGenreDao;
+        this.userStorage = userStorage;
     }
 
     private static final LocalDate DATE = LocalDate.of(1895, 12, 28);
 
     public Film create(Film film)
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
-        if (film.getReleaseDate().isBefore(DATE)) {
+        if (film.getReleaseDate().isBefore(DATE))
             throw new IllegalArgumentException("Выбрана ложная дата релиза");
-        }
         if (!filmStorage.contains(film)) {
             log.info("Данный фильм добавлен");
             return filmStorage.saveFilm(film);
@@ -57,14 +65,10 @@ public class FilmService {
 
     public Film update(Film film) throws NegativeIdException {
         CheckForId.idCheck(film.getId());
-        if (film.getReleaseDate().isBefore(DATE)) {
+        if (film.getReleaseDate().isBefore(DATE))
             throw new IllegalArgumentException("Выбрана ложная дата релиза");
-        }
         filmStorage.update(film);
         log.info("Данные о фильме добавлены или обновлены");
-        if (film.getDirectors() != null) {
-            filmDirectorDao.updateFilmDirector(film);
-        }
         return film;
     }
 
@@ -72,7 +76,7 @@ public class FilmService {
 //        log.info("Текущее количество добавленных фильмов: {}", filmStorage.getSize());
         List<Film> films = filmStorage.findAll();
 
-        for(Film film: films) {
+        for (Film film : films) {
             long id = film.getId();
             film.setGenres(filmGenreDao.getFilmGenreById(id));
             filmDirectorDao.setFilmDirector(film);
@@ -93,14 +97,19 @@ public class FilmService {
 
     public void putLikeToFilm(Long film_id, Long favId) throws NegativeIdException {
         CheckForId.idCheck(film_id, favId);
-        likesDao.putLike(film_id, favId);
-        log.info("+1 лайк");
+        if (filmStorage.contains(film_id) && userStorage.contains(favId)) {
+            likesDao.putLike(film_id, favId);
+            log.info("+1 лайк");
+        } else
+            throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
     }
 
     public void deleteLikeToFilm(Long film_id, Long hateId) throws NegativeIdException {
         CheckForId.idCheck(film_id, hateId);
-        likesDao.deleteLike(film_id, hateId);
-        log.info("-1 лайк");
+        if (filmStorage.contains(film_id) && userStorage.contains(hateId)) {
+            likesDao.deleteLike(film_id, hateId);
+            log.info("-1 лайк");
+        }
     }
 
     public List<Film> getPopularFilms(Long count) throws NegativeIdException {
@@ -108,6 +117,12 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        if (userStorage.contains(userId) & userStorage.contains(friendId)) {
+            log.info("Cписок фильмов, отсортированных по популярности.");
+            return filmStorage.getCommonFilms(userId, friendId);
+        } else throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
+    }
 
 
     public List<Film> findAllFilmsOfDirectorSorted(long id, String sortBy) {

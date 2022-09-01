@@ -71,7 +71,7 @@ public class FilmController {
 */
     //  Пользователь удаляет лайк фильму
     @DeleteMapping("/films/{id}/like/{userId}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @ResponseStatus(HttpStatus.OK)
     public void deleteLikeToFilm(@PathVariable(value = "id") Long id,
                                  @PathVariable(value = "userId") Long userId) {
         filmService.deleteLikeToFilm(id, userId);
@@ -94,6 +94,13 @@ public class FilmController {
         return filmService.findAllFilmsOfDirectorSorted(directorId, sortBy);
     }
 
+
+    @GetMapping("/films/common")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> getCommonFilms(@RequestParam(value = "userId") Long userId,
+                                     @RequestParam(value = "friendId" ) Long friendId) {
+        return filmService.getCommonFilms(userId, friendId);
+
     @GetMapping("/films/popular")
     @ResponseStatus(HttpStatus.OK)
     public List<Film> getPopularFilmsOrderByGenreYear
@@ -101,5 +108,6 @@ public class FilmController {
              @RequestParam Optional<Long> genreId,
              @RequestParam Optional<Integer> year) {
         return filmService.getPopularFilmsOrderByGenreYear(genreId, year, count);
+
     }
 }
