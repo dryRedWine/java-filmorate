@@ -11,8 +11,10 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @Slf4j
@@ -155,5 +157,21 @@ public class FilmService {
             return filmStorage.searchFilmsByDirectorOrTitle(query);
         else
             throw new InvalidIdInPathException("Передан некорректный параметр запроса");
+    }
+    public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
+        if (genreId.isPresent() && year.isPresent()) {
+            log.info("Вывод фильмов, по жанру и году.");
+            return filmStorage.getPopularFilmsOrderByGenreYear(genreId, year, count);
+        }
+        if (year.isPresent()) {
+            log.info("Вывод рейтинга фильмов по году");
+            return filmStorage.getPopularFilmsOrderByYear(year, count);
+        }
+        if (genreId.isPresent()) {
+            log.info("Вывод рейтинга фильмов по жанру");
+            return filmStorage.getPopularFilmsOrderByGenre(genreId, count);
+        }
+        log.info("Вывод рейтинга фильмов по количеству лайков");
+        return filmStorage.getPopularFilms(count);
     }
 }
