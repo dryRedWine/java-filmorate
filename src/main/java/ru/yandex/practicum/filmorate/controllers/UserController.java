@@ -11,7 +11,10 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.UserService;
 
 import javax.validation.Valid;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
@@ -87,5 +90,12 @@ public class UserController {
             throw new IncorrectPathException("Переменная пути не была передана");
         return userService.getRecommendations(userId);
     }
+
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteUserById(@PathVariable(value = "userId") Long id) {
+        userService.deleteUserById(id);
+    }
+
 
 }

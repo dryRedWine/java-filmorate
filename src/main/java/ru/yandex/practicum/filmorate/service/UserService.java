@@ -15,8 +15,9 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Service
 @Slf4j
@@ -60,7 +61,7 @@ public class UserService {
             log.info("Пользователь добавлен");
             return userStorage.saveUser(user);
         } else {
-            log.error("Данный пользователь уже добавлен");
+            log.warn("Данный пользователь уже добавлен");
             throw new AlreadyExistException("Данный пользователь уже добавлен");
         }
     }
@@ -81,7 +82,7 @@ public class UserService {
     public List<User> returnListOfFriends(long id) throws NegativeIdException {
         CheckForId.idCheck(id);
         if (!userStorage.contains(id)) {
-            log.error("Данный пользователь не существует");
+            log.warn("Данный пользователь не существует");
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
         List<User> friends = friendsDao.getFriendsByUserId(id);
@@ -95,7 +96,7 @@ public class UserService {
             log.info("Заданный пользователь успешно возвращен");
             return userStorage.getUserById(id);
         } else {
-            log.error("Данный пользователь не существует");
+            log.warn("Данный пользователь не существует");
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
     }
@@ -106,7 +107,7 @@ public class UserService {
             friendsDao.saveFriend(id, friendId);
             log.info("Пользователь успешно добавлен в друзья :)");
         } else {
-            log.error("Передан несуществующий id");
+            log.warn("Передан несуществующий id");
             throw new InvalidIdInPathException("Передан несуществующий id");
         }
     }
@@ -117,7 +118,7 @@ public class UserService {
             friendsDao.deleteFriends(id, friendId);
             log.info("Пользователь успешно удален из друзей :(");
         } else {
-            log.error("Передан несуществующий id");
+            log.warn("Передан несуществующий id");
             throw new InvalidIdInPathException("Передан несуществующий id");
         }
     }
@@ -155,4 +156,14 @@ public class UserService {
     }
 
 
+    public void deleteUserById(Long id) throws NegativeIdException {
+        //CheckForId.idCheck(id);
+        if (userStorage.contains(id)) {
+            userStorage.deleteUser(id);
+            log.info("Пользователь успешно удален :(");
+        } else {
+            log.warn("Передан несуществующий id");
+            throw new InvalidIdInPathException("Передан несуществующий id");
+        }
+    }
 }
