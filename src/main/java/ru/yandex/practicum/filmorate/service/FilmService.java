@@ -4,14 +4,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
 import ru.yandex.practicum.filmorate.dao.LikesDao;
 import ru.yandex.practicum.filmorate.dao.UserStorage;
 import ru.yandex.practicum.filmorate.exceptions.*;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -21,12 +24,25 @@ public class FilmService {
     @Qualifier("filmDbStorage")
     private final FilmStorage filmStorage;
     private final LikesDao likesDao;
-    private final UserStorage userStorage;
+
+    private final FilmDirectorDao filmDirectorDao;
+
+    private final DirectorDao directorDao;
+
+    private final FilmGenreDao filmGenreDao;
 
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao, UserStorage userStorage) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage,
+                       LikesDao likesDao,
+                       FilmDirectorDao filmDirectorDao,
+                       DirectorDao directorDao,
+                       FilmGenreDao filmGenreDao,
+                       UserStorage userStorage) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
+        this.filmDirectorDao = filmDirectorDao;
+        this.directorDao = directorDao;
+        this.filmGenreDao = filmGenreDao;
         this.userStorage = userStorage;
     }
 
@@ -56,7 +72,15 @@ public class FilmService {
 
     public List<Film> get() {
 //        log.info("Текущее количество добавленных фильмов: {}", filmStorage.getSize());
-        return filmStorage.findAll();
+        List<Film> films = filmStorage.findAll();
+
+        for(Film film: films) {
+            long id = film.getId();
+            film.setGenres(filmGenreDao.getFilmGenreById(id));
+            filmDirectorDao.setFilmDirector(film);
+        }
+
+        return films;
     }
 
     public Film getFilmById(Long id) throws NegativeIdException {
@@ -97,5 +121,41 @@ public class FilmService {
             return filmStorage.getCommonFilms(userId, friendId);
         }
         else throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
+    }
+
+
+
+    public List<Film> findAllFilmsOfDirectorSorted(long id, String sortBy) {
+        final Director director = directorDao.get(id);
+        if (director == null) {
+            throw new InvalidIdInPathException("Director with id=" + id + "not found");
+        }
+
+        List<Film> sortedFilms;
+        if ("year".equals(sortBy)) {
+            sortedFilms = directorDao.getSortedFilmsByYearOfDirector(id);
+        } else if ("likes".equals(sortBy)) {
+            sortedFilms = directorDao.getSortedFilmsByLikesOfDirector(id);
+        } else {
+            return null;
+        }
+        for (Film film : sortedFilms) {
+            film.setGenres(filmGenreDao.getFilmGenreById(film.getId()));
+            filmDirectorDao.setFilmDirector(film);
+        }
+        return sortedFilms;
+    }
+
+    public Collection<Film> searchFilms(String query, List<String> by) {
+        if (by.size() == 1) {
+            if (by.contains("title"))
+                return filmStorage.searchFilmsByTitle(query);
+            else if (by.contains("director"))
+                return filmStorage.searchFilmsByDirector(query);
+            else throw new InvalidIdInPathException("Передан некорректный параметр запроса");
+        } else if (by.size() == 2)
+            return filmStorage.searchFilmsByDirectorOrTitle(query);
+        else
+            throw new InvalidIdInPathException("Передан некорректный параметр запроса");
     }
 }
