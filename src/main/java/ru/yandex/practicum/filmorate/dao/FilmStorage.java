@@ -23,7 +23,11 @@ public interface FilmStorage {
 
     List<Film> getPopularFilms(long film_id);
 
+
+    void deleteFilm(long filmId);
+
     List<Film> getCommonFilms(long userId, long friendId);
+
 
     List<Film> searchFilmsByTitle(String query);
 

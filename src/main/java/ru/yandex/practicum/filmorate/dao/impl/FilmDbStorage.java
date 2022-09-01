@@ -7,9 +7,9 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.dao.FilmDirectorDao;
 import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
-import ru.yandex.practicum.filmorate.dao.FilmStorage;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.dao.FilmStorage;
 
 import javax.validation.Valid;
 import java.sql.Date;
@@ -136,6 +136,21 @@ public class FilmDbStorage implements FilmStorage {
         return getFilmById(film.getId());
     }
 
+    private Long makeFilmId(ResultSet rs, int i) throws SQLException {
+        return rs.getLong("id");
+    }
+
+    @Override
+    public int getSize() {
+        return 0;
+    }
+
+    @Override
+    public void deleteFilm(long filmId) {
+        String sqlQuery = "DELETE FROM films WHERE ID = ?";
+        jdbcTemplate.update(sqlQuery, filmId);
+    }
+
     @Override
     public List<Film> getPopularFilms(long count) {
         String sqlQuery =
@@ -143,7 +158,7 @@ public class FilmDbStorage implements FilmStorage {
                         " l.USER_ID\n" +
                         "FROM films AS f\n" +
                         "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
-                        "GROUP BY f.ID\n" +
+                        "GROUP BY f.ID, l.USER_ID \n" +
                         "ORDER BY COUNT(l.USER_ID) DESC\n" +
                         "LIMIT ?";
         List<Long> popularity = jdbcTemplate.query(sqlQuery, this::makeFilmId, count);

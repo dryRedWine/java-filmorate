@@ -26,11 +26,8 @@ public class FilmService {
     @Qualifier("userDbStorage")
     private final UserStorage userStorage;
     private final LikesDao likesDao;
-
     private final FilmDirectorDao filmDirectorDao;
-
     private final DirectorDao directorDao;
-
     private final FilmGenreDao filmGenreDao;
 
     @Autowired
@@ -58,7 +55,7 @@ public class FilmService {
             log.info("Данный фильм добавлен");
             return filmStorage.saveFilm(film);
         } else {
-            log.error("Данный фильм уже добавлен");
+            log.warn("Данный фильм уже добавлен");
             throw new AlreadyExistException("Данный фильм уже добавлен");
         }
     }
@@ -88,7 +85,7 @@ public class FilmService {
     public Film getFilmById(Long id) throws NegativeIdException {
         CheckForId.idCheck(id);
         if (!filmStorage.contains(id)) {
-            log.error("Данный пользователь не существует");
+            log.warn("Данный пользователь не существует");
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
         log.info("Заданный пользователь успешно возвращен");
@@ -117,12 +114,21 @@ public class FilmService {
         return filmStorage.getPopularFilms(count);
     }
 
+
+    public void deleteFilm(Long film_id) throws NegativeIdException {
+        CheckForId.idCheck(film_id);
+        filmStorage.deleteFilm(film_id);
+        log.info("-1 фильм");
+    }
+
+
     public List<Film> getCommonFilms(long userId, long friendId) {
         if (userStorage.contains(userId) & userStorage.contains(friendId)) {
             log.info("Cписок фильмов, отсортированных по популярности.");
             return filmStorage.getCommonFilms(userId, friendId);
         } else throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
     }
+
 
 
     public List<Film> findAllFilmsOfDirectorSorted(long id, String sortBy) {
