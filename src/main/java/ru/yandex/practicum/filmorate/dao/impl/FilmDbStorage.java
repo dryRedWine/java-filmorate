@@ -5,9 +5,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Component;
+import ru.yandex.practicum.filmorate.dao.FilmDirectorDao;
 import ru.yandex.practicum.filmorate.dao.FilmGenreDao;
 import ru.yandex.practicum.filmorate.dao.MpaDao;
-import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.dao.FilmStorage;
 
@@ -18,6 +18,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component("filmDbStorage")
@@ -29,18 +30,19 @@ public class FilmDbStorage implements FilmStorage {
     private final MpaDao mpaDao;
 
     private final FilmDirectorDao filmDirectorDao;
+
     private final FilmGenreDao filmGenreDao;
 
     public FilmDbStorage(JdbcTemplate jdbcTemplate,
                          MpaDao mpaDao,
                          FilmGenreDao filmGenreDao,
-                         FilmDirectorDao filmDirectorDao){
-        this.jdbcTemplate=jdbcTemplate;
+                         FilmDirectorDao filmDirectorDao) {
+        this.jdbcTemplate = jdbcTemplate;
         this.mpaDao = mpaDao;
         this.filmGenreDao = filmGenreDao;
         this.filmDirectorDao = filmDirectorDao;
     }
-    
+
 
     @Override
     public List<Film> findAll() {
@@ -76,7 +78,7 @@ public class FilmDbStorage implements FilmStorage {
         }, keyHolder);
 
         long filmId = Objects.requireNonNull(keyHolder.getKey()).longValue();
-        //        Заполнение таблицы film_genre
+//        Заполнение таблицы film_genre
         if (film.getGenres() != null)
             filmGenreDao.saveFilmGenre(filmId, film.getGenres());
         //        Заполнение таблицы film_directors
@@ -165,6 +167,44 @@ public class FilmDbStorage implements FilmStorage {
                 .collect(Collectors.toList());
     }
 
+
+    private Long makeFilmId(ResultSet rs, int i) throws SQLException {
+        return rs.getLong("id");
+    }
+
+    @Override
+    public int getSize() {
+        return 0;
+    }
+
+    @Override
+    public List<Film> getCommonFilms(long userId, long friendId) {
+        String sqlQuery = "SELECT DISTINCT f.id,\n" +
+                "                f.name,\n" +
+                "                f.description,\n" +
+                "                f.release_date,\n" +
+                "                f.duration,\n" +
+                "                COUNT(l.film_id),\n" +
+                "                f.mpa_id,\n" +
+                "                m.name \n" +
+                "FROM films AS f\n" +
+                "         LEFT JOIN mpa AS m on M.id = F.mpa_id\n" +
+                "         LEFT JOIN likes AS l on f.id = l.film_id\n" +
+                "         LEFT JOIN film_genre AS fg on f.id = fg.film_id\n" +
+                "         LEFT JOIN genres g on fg.genre_id = g.id\n" +
+                "WHERE f.id IN (SELECT l_user.film_id\n" +
+                "               FROM likes AS l_user\n" +
+                "               JOIN likes AS l_frend on l_frend.film_id =l_user.film_id\n" +
+                "               WHERE l_user.user_id = ?\n" +
+                "               AND l_frend.user_id = ?)\n" +
+                "GROUP BY f.id, fg.genre_id\n" +
+                "ORDER BY COUNT(l.film_id) DESC;";
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, userId, friendId);
+        return commonFilms.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
+
     @Override
     public List<Film> searchFilmsByTitle(String query) {
         log.info("log перед выполнением запроса к бд");
@@ -220,6 +260,87 @@ public class FilmDbStorage implements FilmStorage {
                 '%' + query + '%',
                 '%' + query + '%');
         return filmsByQuery.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
+        String sqlQuery = "SELECT DISTINCT f.id,\n" +
+                "                f.name,\n" +
+                "                f.description,\n" +
+                "                f.release_date,\n" +
+                "                f.duration,\n" +
+                "                COUNT(l.film_id),\n" +
+                "                f.mpa_id,\n" +
+                "                m.name\n" +
+                "FROM films AS f\n" +
+                "         LEFT JOIN mpa AS m ON m.id = f.mpa_id\n" +
+                "         LEFT JOIN likes L on F.ID = l.film_id\n" +
+                "         LEFT JOIN film_genre AS fg ON f.id = fg.film_id\n" +
+                "         LEFT JOIN genres AS g ON fg.genre_id = g.id\n" +
+                "         LEFT JOIN film_directors fd on f.id = fd.film_id\n" +
+                "         LEFT JOIN directors AS d ON fd.director_id = d.id\n" +
+                "WHERE fg.genre_id = ? AND YEAR (f.release_date) = ?\n" +
+                "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
+                "ORDER BY COUNT(l.film_id) DESC \n" +
+                "LIMIT ?";
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), year.get(), count);
+        return commonFilms.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getPopularFilmsOrderByGenre(Optional<Long> genreId, long count) {
+        String sqlQuery = "SELECT DISTINCT f.id,\n" +
+                "                f.name,\n" +
+                "                f.description,\n" +
+                "                f.release_date,\n" +
+                "                f.duration,\n" +
+                "                COUNT(l.film_id),\n" +
+                "                f.mpa_id,\n" +
+                "                m.name\n" +
+                "FROM films AS f\n" +
+                "         LEFT JOIN mpa AS m ON m.id = f.mpa_id\n" +
+                "         LEFT JOIN likes L on F.ID = l.film_id\n" +
+                "         LEFT JOIN film_genre AS fg ON f.id = fg.film_id\n" +
+                "         LEFT JOIN genres AS g ON fg.genre_id = g.id\n" +
+                "         LEFT JOIN film_directors fd on f.id = fd.film_id\n" +
+                "         LEFT JOIN directors AS d ON fd.director_id = d.id\n" +
+                "WHERE fg.genre_id = ?\n" +
+                "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
+                "ORDER BY COUNT(l.film_id) DESC \n" +
+                "LIMIT ?";
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), count);
+        return commonFilms.stream()
+                .map(this::getFilmById)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Film> getPopularFilmsOrderByYear(Optional<Integer> year, long count) {
+        String sqlQuery = "SELECT DISTINCT f.id,\n" +
+                "                f.name,\n" +
+                "                f.description,\n" +
+                "                f.release_date,\n" +
+                "                f.duration,\n" +
+                "                COUNT(l.film_id),\n" +
+                "                f.mpa_id,\n" +
+                "                m.name\n" +
+                "FROM films AS f\n" +
+                "         LEFT JOIN mpa AS m ON m.id = f.mpa_id\n" +
+                "         LEFT JOIN likes L on F.ID = l.film_id\n" +
+                "         LEFT JOIN film_genre AS fg ON f.id = fg.film_id\n" +
+                "         LEFT JOIN genres AS g ON fg.genre_id = g.id\n" +
+                "         LEFT JOIN film_directors fd on f.id = fd.film_id\n" +
+                "         LEFT JOIN directors AS d ON fd.director_id = d.id\n" +
+                "WHERE YEAR (f.release_date) = ?\n" +
+                "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
+                "ORDER BY COUNT(l.film_id) DESC \n" +
+                "LIMIT  ?";
+        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, year.get(), count);
+        return commonFilms.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
     }
