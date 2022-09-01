@@ -134,22 +134,6 @@ public class FilmDbStorage implements FilmStorage {
         return getFilmById(film.getId());
     }
 
-//    @Override
-//    public List<Film> getPopularFilms(long count) {
-//        String sqlQuery =
-//                "SELECT DISTINCT f.ID,\n" +
-//                        " l.USER_ID\n" +
-//                        "FROM films AS f\n" +
-//                        "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
-//                        "GROUP BY f.ID\n" +
-//                        "ORDER BY COUNT(l.USER_ID) DESC\n" +
-//                        "LIMIT ?";
-//        List<Long> popularity = jdbcTemplate.query(sqlQuery, this::makeFilmId, count);
-//        return popularity.stream()
-//                .map(this::getFilmById)
-//                .collect(Collectors.toList());
-//    }
-
     private Long makeFilmId(ResultSet rs, int i) throws SQLException {
         return rs.getLong("id");
     }
@@ -167,23 +151,14 @@ public class FilmDbStorage implements FilmStorage {
 
     @Override
     public List<Film> getPopularFilms(long count) {
-        final String sqlQuery = "SELECT " +
-                "f.id, " +
-                "f.name, " +
-                "f.description, " +
-                "f.release_date, " +
-                "f.duration, " +
-                "f.id, " +
-                "r.ID, " +
-                "r.NAME AS rateName, " +
-                "FROM films AS f " +
-                "JOIN mpa AS r on f.id = r.id " +
-                "LEFT JOIN likes AS l ON f.id = l.film_id " +
-                "GROUP BY f.id " +
-                "ORDER BY COUNT(l.user_id) " +
-                "DESC LIMIT ?";
-
-
+        String sqlQuery =
+                "SELECT DISTINCT f.ID,\n" +
+                        " l.USER_ID\n" +
+                        "FROM films AS f\n" +
+                        "LEFT OUTER JOIN likes AS l ON f.ID = l.FILM_ID\n" +
+                        "GROUP BY f.ID, l.USER_ID \n" +
+                        "ORDER BY COUNT(l.USER_ID) DESC\n" +
+                        "LIMIT ?";
         List<Long> popularity = jdbcTemplate.query(sqlQuery, this::makeFilmId, count);
         return popularity.stream()
                 .map(this::getFilmById)
