@@ -11,6 +11,7 @@ import javax.validation.Valid;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping
@@ -59,7 +60,7 @@ public class FilmController {
 
     //  Возвращает список из первых count фильмов по количеству лайков.
     //  Если значение параметра count не задано, верните первые 10
-    @GetMapping("/films/popular")
+ /*   @GetMapping("/films/popular")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> getPopularFilms(
             @RequestParam(value = "count", defaultValue = "10", required = false) Long count) {
@@ -67,7 +68,7 @@ public class FilmController {
             throw new IncorrectParameterException("Count не может быть меньше 1");
         return filmService.getPopularFilms(count);
     }
-
+*/
     //  Пользователь удаляет лайк фильму
     @DeleteMapping("/films/{id}/like/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -91,5 +92,14 @@ public class FilmController {
     @GetMapping("/films/director/{directorId}")
     public List<Film> sortByFilm(@PathVariable int directorId, @RequestParam String sortBy) {
         return filmService.findAllFilmsOfDirectorSorted(directorId, sortBy);
+    }
+
+    @GetMapping("/films/popular")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Film> getPopularFilmsOrderByGenreYear
+            (@RequestParam(value = "count", defaultValue = "10", required = false) long count,
+             @RequestParam Optional<Long> genreId,
+             @RequestParam Optional<Integer> year) {
+        return filmService.getPopularFilmsOrderByGenreYear(genreId, year, count);
     }
 }
