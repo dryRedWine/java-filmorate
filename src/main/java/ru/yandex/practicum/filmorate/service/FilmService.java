@@ -11,6 +11,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -21,10 +22,23 @@ public class FilmService {
     private final FilmStorage filmStorage;
     private final LikesDao likesDao;
 
+    private final FilmDirectorDao filmDirectorDao;
+
+    private final DirectorDao directorDao;
+
+    private final FilmGenreDao filmGenreDao;
+
     @Autowired
-    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage, LikesDao likesDao) {
+    public FilmService(@Qualifier("filmDbStorage") FilmStorage inMemoryFilmStorage,
+                       LikesDao likesDao,
+                       FilmDirectorDao filmDirectorDao,
+                       DirectorDao directorDao,
+                       FilmGenreDao filmGenreDao) {
         this.filmStorage = inMemoryFilmStorage;
         this.likesDao = likesDao;
+        this.filmDirectorDao = filmDirectorDao;
+        this.directorDao = directorDao;
+        this.filmGenreDao = filmGenreDao;
     }
 
     private static final LocalDate DATE = LocalDate.of(1895, 12, 28);
@@ -53,7 +67,15 @@ public class FilmService {
 
     public List<Film> get() {
 //        log.info("Текущее количество добавленных фильмов: {}", filmStorage.getSize());
-        return filmStorage.findAll();
+        List<Film> films = filmStorage.findAll();
+
+        for(Film film: films) {
+            long id = film.getId();
+            film.setGenres(filmGenreDao.getFilmGenreById(id));
+            filmDirectorDao.setFilmDirector(film);
+        }
+
+        return films;
     }
 
     public Film getFilmById(Long id) throws NegativeIdException {
@@ -87,5 +109,41 @@ public class FilmService {
         CheckForId.idCheck(film_id);
         filmStorage.deleteFilm(film_id);
         log.info("-1 фильм");
+    }
+
+
+
+    public List<Film> findAllFilmsOfDirectorSorted(long id, String sortBy) {
+        final Director director = directorDao.get(id);
+        if (director == null) {
+            throw new InvalidIdInPathException("Director with id=" + id + "not found");
+        }
+
+        List<Film> sortedFilms;
+        if ("year".equals(sortBy)) {
+            sortedFilms = directorDao.getSortedFilmsByYearOfDirector(id);
+        } else if ("likes".equals(sortBy)) {
+            sortedFilms = directorDao.getSortedFilmsByLikesOfDirector(id);
+        } else {
+            return null;
+        }
+        for (Film film : sortedFilms) {
+            film.setGenres(filmGenreDao.getFilmGenreById(film.getId()));
+            filmDirectorDao.setFilmDirector(film);
+        }
+        return sortedFilms;
+    }
+
+    public Collection<Film> searchFilms(String query, List<String> by) {
+        if (by.size() == 1) {
+            if (by.contains("title"))
+                return filmStorage.searchFilmsByTitle(query);
+            else if (by.contains("director"))
+                return filmStorage.searchFilmsByDirector(query);
+            else throw new InvalidIdInPathException("Передан некорректный параметр запроса");
+        } else if (by.size() == 2)
+            return filmStorage.searchFilmsByDirectorOrTitle(query);
+        else
+            throw new InvalidIdInPathException("Передан некорректный параметр запроса");
     }
 }

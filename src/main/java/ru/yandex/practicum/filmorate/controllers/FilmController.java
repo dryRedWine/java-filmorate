@@ -84,4 +84,21 @@ public class FilmController {
     public void deleteFilm(@PathVariable(value = "id") Long id) {
         filmService.deleteFilm(id);
     }
+
+    @GetMapping("/films/search")
+    @ResponseStatus(HttpStatus.OK)
+    public Collection<Film> searchFilms(@RequestParam(value = "query", required = false) String query,
+                                          @RequestParam(value = "by", required = false) List<String> by) {
+        if (query == null && by == null)
+            return filmService.getPopularFilms(10L);
+        else if (query == null || by == null)
+            throw new IncorrectPathException("Передан неправильный параметр запроса");
+        return filmService.searchFilms(query, by);
+    }
+
+
+    @GetMapping("/films/director/{directorId}")
+    public List<Film> sortByFilm(@PathVariable int directorId, @RequestParam String sortBy) {
+        return filmService.findAllFilmsOfDirectorSorted(directorId, sortBy);
+    }
 }
