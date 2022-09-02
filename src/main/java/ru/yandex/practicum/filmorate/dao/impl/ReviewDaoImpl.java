@@ -56,8 +56,7 @@ public class ReviewDaoImpl implements ReviewDao {
                 "rr.rate useful " +
                 "FROM reviews r " +
                 "LEFT JOIN review_rate rr ON r.id = rr.review_id " +
-                "WHERE r.id = ? " +
-                "GROUP BY r.id";
+                "WHERE r.id = ? ";
 
         final List<Review> reviews = jdbcTemplate.query(sqlQuery, this::makeReview, id);
         if (reviews.size() != 1) {
@@ -136,10 +135,8 @@ public class ReviewDaoImpl implements ReviewDao {
 
     @Override
     public int addLikeOrDislike(int reviewId, int userId, String eventType) {
-        String sql = "INSERT INTO review_events (user_id,review_id, event_type)"
-                + "VALUES ((SELECT id FROM users WHERE id = ?), " + "(SELECT id FROM reviews WHERE id = ?),?)";
-        int result = jdbcTemplate.update(sql, userId, reviewId, eventType);
-        return result;
+        String sql = "INSERT INTO review_events (user_id, review_id, event_type) VALUES ( ?, ?, ?)";
+        return jdbcTemplate.update(sql, userId, reviewId, eventType);
     }
 
     @Override
@@ -149,7 +146,7 @@ public class ReviewDaoImpl implements ReviewDao {
                         "SET rate = " +
                         "(SELECT COUNT(user_id) FROM review_events WHERE event_type = ? AND review_id =?) " +
                         "- (SELECT COUNT(user_id) FROM review_events WHERE event_type = ? AND review_id =?) " +
-                        "WHERE review_id = (SELECT id from reviews WHERE id =?)";
+                        "WHERE review_id = ? ";
         jdbcTemplate.update(sqlQuery,
                 EventType.LIKE.toString(),
                 reviewId,
@@ -160,8 +157,7 @@ public class ReviewDaoImpl implements ReviewDao {
 
     @Override
     public void addReviewRate(int id) {
-        String sql = "INSERT INTO review_rate (review_id, rate)"
-                + "VALUES ((SELECT id FROM reviews WHERE id = ?), ?)";
+        String sql = "INSERT INTO review_rate (review_id, rate) VALUES ( ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement stmt = connection.prepareStatement(sql, new String[]{"id"});

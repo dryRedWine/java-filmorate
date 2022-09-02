@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.exceptions.AlreadyExistException;
@@ -20,6 +21,7 @@ import java.util.Set;
 
 @RestController
 @RequestMapping("/users")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -68,8 +70,8 @@ public class UserController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public User getUserById(@PathVariable(value = "id", required = false) Long id) {
+        log.info("Get user id={}", id);
         return userService.getUserById(id);
-
     }
 
     // Список друзей, общих с другим пользователем
@@ -99,6 +101,7 @@ public class UserController {
     @DeleteMapping("/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteUserById(@PathVariable(value = "userId") Long id) {
+        log.info("Delete user id={}", id);
         userService.deleteUserById(id);
     }
 

@@ -18,15 +18,8 @@ import java.util.List;
 @Slf4j
 @RequiredArgsConstructor
 public class ReviewService {
-    ReviewDao reviewDao;
-
+    private final ReviewDao reviewDao;
     private final EventDaoImpl eventDaoImpl;
-
-    @Autowired
-    public ReviewService(ReviewDao dao, EventDaoImpl eventDaoImpl) {
-        this.reviewDao = dao;
-        this.eventDaoImpl = eventDaoImpl;
-    }
 
     public Review create(Review review) {
         CheckForId.idCheck(review.getFilmId());

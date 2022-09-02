@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.dao.impl.EventDaoImpl;
+import ru.yandex.practicum.filmorate.enums.SearchName;
 import ru.yandex.practicum.filmorate.exceptions.*;
 import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
@@ -14,10 +15,14 @@ import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 import ru.yandex.practicum.filmorate.utility.CheckForId;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+
+import static ru.yandex.practicum.filmorate.enums.SearchName.DIRECTOR;
+import static ru.yandex.practicum.filmorate.enums.SearchName.TITLE;
+import static ru.yandex.practicum.filmorate.enums.SortParam.YEAR;
+import static ru.yandex.practicum.filmorate.enums.SortParam.LIKES;
 
 @Service
 @Slf4j
@@ -32,7 +37,6 @@ public class FilmService {
     private final FilmDirectorDao filmDirectorDao;
     private final DirectorDao directorDao;
     private final FilmGenreDao filmGenreDao;
-
     private final EventDaoImpl eventDaoImpl;
 
     @Autowired
@@ -80,7 +84,6 @@ public class FilmService {
     }
 
     public List<Film> get() {
-//        log.info("Текущее количество добавленных фильмов: {}", filmStorage.getSize());
         List<Film> films = filmStorage.findAll();
 
         for (Film film : films) {
@@ -141,7 +144,7 @@ public class FilmService {
 
     public List<Film> getCommonFilms(long userId, long friendId) {
         if (userStorage.contains(userId) & userStorage.contains(friendId)) {
-            log.info("Cписок фильмов, отсортированных по популярности.");
+            log.info("Список фильмов, отсортированных по популярности.");
             return filmStorage.getCommonFilms(userId, friendId);
         } else throw new InvalidIdInPathException("Ошибка один из пользователей не существует");
     }
@@ -155,9 +158,9 @@ public class FilmService {
         }
 
         List<Film> sortedFilms;
-        if ("year".equals(sortBy)) {
+        if (YEAR.getParam().equals(sortBy)) {
             sortedFilms = directorDao.getSortedFilmsByYearOfDirector(id);
-        } else if ("likes".equals(sortBy)) {
+        } else if (LIKES.getParam().equals(sortBy)) {
             sortedFilms = directorDao.getSortedFilmsByLikesOfDirector(id);
         } else {
             return null;
@@ -171,9 +174,9 @@ public class FilmService {
 
     public Collection<Film> searchFilms(String query, List<String> by) {
         if (by.size() == 1) {
-            if (by.contains("title"))
+            if (by.contains(TITLE.getName()))
                 return filmStorage.searchFilmsByTitle(query);
-            else if (by.contains("director"))
+            else if (by.contains(DIRECTOR.getName()))
                 return filmStorage.searchFilmsByDirector(query);
             else throw new InvalidIdInPathException("Передан некорректный параметр запроса");
         } else if (by.size() == 2)

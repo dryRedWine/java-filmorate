@@ -87,10 +87,10 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public List<Film> getSortedFilmsByYearOfDirector(long id) {
-        String sqlQuery = "SELECT *" +
+        String sqlQuery = "SELECT f.*" +
                 "FROM FILMS f " +
-                "WHERE f.ID IN (SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?) " +
-//                "GROUP BY f.ID " +
+                "INNER JOIN FILM_DIRECTORS FD on f.ID = FD.FILM_ID " +
+                "WHERE DIRECTOR_ID = ? " +
                 "ORDER BY f.RELEASE_DATE";
         return jdbcTemplate.query(sqlQuery, this::makeFilm, id);
     }
@@ -101,11 +101,11 @@ public class DirectorDaoImpl implements DirectorDao {
                 " f.DURATION, m.ID, m.NAME " +
                 "FROM LIKES l JOIN FILMS f ON l.FILM_ID = f.ID JOIN MPA m ON f.MPA_ID = m.ID" +
                 " WHERE f.ID IN (SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?)" +
-                " GROUP BY f.ID" +
+                " GROUP BY f.ID, f.NAME, f.RELEASE_DATE, f.DESCRIPTION, f.DURATION, m.ID, m.NAME" +
                 " ORDER BY RATING";
         List<Film> sortedFilms = jdbcTemplate.query(sqlQuery, this::makeFilm, id);
 
-        if (sortedFilms.isEmpty()) { 
+        if (sortedFilms.isEmpty()) {
             sqlQuery = "SELECT f.ID, f.NAME, f.RELEASE_DATE, f.DESCRIPTION, f.DURATION," +
                     " m.ID, m.NAME  " +
                     "FROM FILMS f JOIN MPA m ON f.MPA_ID = m.ID " +
@@ -122,7 +122,6 @@ public class DirectorDaoImpl implements DirectorDao {
                 .name(rs.getString("name"))
                 .build();
     }
-
 
 
     private @Valid Film makeFilm(ResultSet rs, int i) throws SQLException {

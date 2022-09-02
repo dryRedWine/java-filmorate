@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controllers;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -12,6 +13,7 @@ import java.util.Collection;
 
 @RestController
 @RequestMapping("/reviews")
+@Slf4j
 public class ReviewController {
     private final ReviewService reviewService;
 
@@ -36,6 +38,7 @@ public class ReviewController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Review getById(@PathVariable int id) {
+        log.info("Get review id={}", id);
         return reviewService.getById(id);
     }
 
