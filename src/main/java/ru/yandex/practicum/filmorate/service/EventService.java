@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.model.eventEnum.EventType;
 import java.util.List;
 
 @Service
-@Slf4j
 public class EventService {
 
     private final EventDaoImpl eventDaoImpl;

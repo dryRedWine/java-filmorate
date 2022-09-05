@@ -26,12 +26,14 @@ public class ReviewController {
     @ResponseStatus(HttpStatus.CREATED)
     public Review create(@Valid @RequestBody Review review)
             throws IllegalArgumentException {
+        log.info("Post review");
         return reviewService.create(review);
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public Review update(@Valid @RequestBody Review review) {
+        log.info("Put review id={}", review.getReviewId());
         return reviewService.update(review);
     }
 
@@ -46,6 +48,7 @@ public class ReviewController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<Review> getByFilmIdAndCount(@RequestParam(required = false) Integer count,
                                                   @RequestParam(required = false) Integer filmId) {
+        log.info("Get by film id={} and count={}", filmId, count);
         return reviewService.getReviewByFilmIdAndCount(filmId, count);
     }
 
@@ -53,18 +56,21 @@ public class ReviewController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteLikeToFilm(@PathVariable int id) {
+        log.info("Delete review id={}", id);
         reviewService.delete(id);
     }
 
     @PutMapping("{reviewId}/like/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public void addLike(@PathVariable int reviewId, @PathVariable int userId) {
+        log.info("Put like reviewId={} and userId={}", reviewId, userId);
         reviewService.addLikeOrDislike(reviewId, userId, EventType.LIKE.toString());
     }
 
     @PutMapping("{reviewId}/dislike/{userId}")
     @ResponseStatus(HttpStatus.OK)
     public void addDislike(@PathVariable int reviewId, @PathVariable int userId) {
+        log.info("Put dislike reviewId={} and userId={}", reviewId, userId);
         reviewService.addLikeOrDislike(reviewId, userId, EventType.DISLIKE.toString());
     }
 }

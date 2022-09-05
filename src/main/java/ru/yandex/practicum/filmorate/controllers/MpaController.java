@@ -30,6 +30,7 @@ public class MpaController {
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
     public Collection<Mpa> findAll() {
+        log.info("Get all mpa");
         return mpaService.findAll();
     }
 }

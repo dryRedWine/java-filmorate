@@ -34,16 +34,19 @@ public class DirectorController {
 
     @PostMapping
     public Director createDirector(@Valid @RequestBody Director director) {
+        log.info("Post director");
         return directorService.create(director);
     }
 
     @PutMapping
     public Director updateDirector(@Valid @RequestBody Director director) {
+        log.info("Put director id={}", director.getId());
         return directorService.update(director);
     }
 
     @DeleteMapping("/{id}")
     public void deleteDirector(@PathVariable long id) {
+        log.info("Delete director id={}", id);
         directorService.delete(id);
     }
 

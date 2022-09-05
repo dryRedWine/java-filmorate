@@ -63,10 +63,8 @@ public class FilmService {
         if (film.getReleaseDate().isBefore(DATE))
             throw new IllegalArgumentException("Выбрана ложная дата релиза");
         if (!filmStorage.contains(film)) {
-            log.info("Данный фильм добавлен");
             return filmStorage.saveFilm(film);
         } else {
-            log.warn("Данный фильм уже добавлен");
             throw new AlreadyExistException("Данный фильм уже добавлен");
         }
     }
@@ -98,7 +96,6 @@ public class FilmService {
     public Film getFilmById(Long id) throws NegativeIdException {
         CheckForId.idCheck(id);
         if (!filmStorage.contains(id)) {
-            log.warn("Данный пользователь не существует");
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
         log.info("Заданный пользователь успешно возвращен");

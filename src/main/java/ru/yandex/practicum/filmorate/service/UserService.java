@@ -22,7 +22,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@Slf4j
 public class UserService {
 
     @Qualifier("userDbStorage")
@@ -56,7 +55,6 @@ public class UserService {
             throw new NotBurnYetException("Пользователь еще не родился :)");
         if (user.getName().isBlank()) { // проверка имени на пустоту
             user.setName(user.getLogin());
-            log.debug("Имени присвоено значение логина");
         }
     }
 
@@ -64,10 +62,8 @@ public class UserService {
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
         additionalCheck(user);
         if (!userStorage.contains(user)) {
-            log.info("Пользователь добавлен");
             return userStorage.saveUser(user);
         } else {
-            log.warn("Данный пользователь уже добавлен");
             throw new AlreadyExistException("Данный пользователь уже добавлен");
         }
     }
@@ -76,33 +72,26 @@ public class UserService {
         CheckForId.idCheck(user.getId());
         additionalCheck(user);
         userStorage.update(user);
-        log.info("Данные о пользователе добавлены или обновлены");
         return user;
     }
 
     public List<User> findAll() {
-//        log.info("Текущее количество пользователей: {}", userStorage.getSize());
         return userStorage.findAll();
     }
 
     public List<User> returnListOfFriends(long id) throws NegativeIdException {
         CheckForId.idCheck(id);
         if (!userStorage.contains(id)) {
-            log.warn("Данный пользователь не существует");
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
-        List<User> friends = friendsDao.getFriendsByUserId(id);
-        log.info("Возвращен список друзей заданного пользователя");
-        return friends;
+        return friendsDao.getFriendsByUserId(id);
     }
 
     public User getUserById(long id) throws NegativeIdException {
         CheckForId.idCheck(id);
         if (userStorage.contains(id)) {
-            log.info("Заданный пользователь успешно возвращен");
             return userStorage.getUserById(id);
         } else {
-            log.warn("Данный пользователь не существует");
             throw new InvalidIdInPathException("Данный пользователь не существует");
         }
     }
@@ -111,10 +100,8 @@ public class UserService {
         CheckForId.idCheckEquals(id, friendId);
         if (userStorage.contains(id) && userStorage.contains(friendId)) {
             friendsDao.saveFriend(id, friendId);
-            log.info("Пользователь успешно добавлен в друзья :)");
             eventDaoImpl.addEvent(id, EventType.FRIEND, EventOperation.ADD, friendId);
         } else {
-            log.warn("Передан несуществующий id");
             throw new InvalidIdInPathException("Передан несуществующий id");
         }
     }
@@ -123,10 +110,8 @@ public class UserService {
         CheckForId.idCheckEquals(id, friendId);
         if (userStorage.contains(id) && userStorage.contains(friendId)) {
             friendsDao.deleteFriends(id, friendId);
-            log.info("Пользователь успешно удален из друзей :(");
             eventDaoImpl.addEvent(id, EventType.FRIEND, EventOperation.REMOVE, friendId);
         } else {
-            log.warn("Передан несуществующий id");
             throw new InvalidIdInPathException("Передан несуществующий id");
         }
     }
@@ -136,7 +121,6 @@ public class UserService {
         Set<User> userSet1 = new HashSet<>(friendsDao.getFriendsByUserId(id));
         Set<User> userSet2 = new HashSet<>(friendsDao.getFriendsByUserId(otherId));
         userSet1.retainAll(userSet2);
-        log.info("Список общих друзей успешно возвращен");
         return userSet1;
     }
 
@@ -165,12 +149,9 @@ public class UserService {
 
 
     public void deleteUserById(Long id) throws NegativeIdException {
-        //CheckForId.idCheck(id);
         if (userStorage.contains(id)) {
             userStorage.deleteUser(id);
-            log.info("Пользователь успешно удален :(");
         } else {
-            log.warn("Передан несуществующий id");
             throw new InvalidIdInPathException("Передан несуществующий id");
         }
     }

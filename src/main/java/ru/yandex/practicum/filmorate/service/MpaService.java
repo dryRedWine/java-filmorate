@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Mpa;
 import java.util.Collection;
 
 @Service
-@Slf4j
 public class MpaService {
 
     private final MpaDaoImpl mpaDao;

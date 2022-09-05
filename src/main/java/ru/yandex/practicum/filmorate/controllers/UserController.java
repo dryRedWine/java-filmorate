@@ -37,12 +37,14 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public @Valid User create(@Valid @RequestBody User user)
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
+        log.info("Create user");
         return userService.create(user);
     }
 
     @PutMapping
     @ResponseStatus(HttpStatus.OK)
     public @Valid User update(@Valid @RequestBody User user) {
+        log.info("Update user");
         return userService.update(user);
     }
 
@@ -51,18 +53,21 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void addNewFriendById(@PathVariable(value = "id") Long id,
                                  @PathVariable(value = "friendId") Long friendId) {
+        log.info("Put new friend with userId={} and friendId={}", id, friendId);
         userService.addNewFriendById(id, friendId);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public Collection<User> findAll() {
+        log.info("Get all users");
         return userService.findAll();
     }
 
     // Возвращает список друзей определенного пользователя
     @GetMapping("/{id}/friends")
     public Collection<User> returnListOfFriends(@PathVariable(value = "id", required = false) Long id) {
+        log.info("Get friends of user id={}", id);
         return userService.returnListOfFriends(id);
     }
 
@@ -79,6 +84,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<User> getMutualFriendsList(@PathVariable(value = "id") Long id,
                                                  @PathVariable(value = "otherId") Long friendId) {
+        log.info("Get common friends with id={} and otherId={}", id, friendId);
         return userService.getMutualFriendsList(id, friendId);
     }
 
@@ -87,6 +93,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteFriendById(@PathVariable(value = "id") Long id,
                                  @PathVariable(value = "friendId") Long friendId) {
+        log.info("Delete friend with userId={} and otherId={}", id, friendId);
         userService.deleteFriendById(id, friendId);
     }
 
@@ -95,6 +102,7 @@ public class UserController {
     public Collection<Film> getRecommendations(@PathVariable(value = "id", required = false) Long userId) {
         if (userId == null)
             throw new IncorrectPathException("Переменная пути не была передана");
+        log.info("Get recommendations userId={}", userId);
         return userService.getRecommendations(userId);
     }
 
@@ -108,6 +116,7 @@ public class UserController {
     @GetMapping("/{id}/feed")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Event> getFeed(@PathVariable(value = "id") Long id) {
+        log.info("Get feed userId={}", id);
         return eventService.getEventUserById(id);
     }
 

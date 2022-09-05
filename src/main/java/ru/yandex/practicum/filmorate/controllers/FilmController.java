@@ -33,12 +33,14 @@ public class FilmController {
     @ResponseStatus(HttpStatus.CREATED)
     public @Valid Film create(@Valid @RequestBody Film film)
             throws AlreadyExistException, NotBurnYetException, IllegalLoginException {
+        log.info("Create film");
         return filmService.create(film);
     }
 
     @PutMapping("/films")
     @ResponseStatus(HttpStatus.OK)
     public @Valid Film update(@Valid @RequestBody Film film) {
+        log.info("Update film");
         return filmService.update(film);
     }
 
@@ -47,12 +49,14 @@ public class FilmController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void putLikeToFilm(@PathVariable(value = "id") Long id,
                               @PathVariable(value = "userId") Long userId) {
+        log.info("Put like to film");
         filmService.putLikeToFilm(id, userId);
     }
 
     @GetMapping("/films")
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> get() {
+        log.info("Get films");
         return filmService.get();
     }
 
@@ -69,6 +73,7 @@ public class FilmController {
     @ResponseStatus(HttpStatus.OK)
     public void deleteLikeToFilm(@PathVariable(value = "id") Long id,
                                  @PathVariable(value = "userId") Long userId) {
+        log.info("Delete like from {} by {}", id, userId);
         filmService.deleteLikeToFilm(id, userId);
     }
 
@@ -83,6 +88,7 @@ public class FilmController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> searchFilms(@RequestParam(value = "query", required = false) String query,
                                         @RequestParam(value = "by", required = false) List<String> by) {
+        log.info("Search films");
         if (query == null && by == null)
             return filmService.getPopularFilms(10L);
         else if (query == null || by == null)
@@ -93,6 +99,7 @@ public class FilmController {
 
     @GetMapping("/films/director/{directorId}")
     public List<Film> sortByFilm(@PathVariable int directorId, @RequestParam String sortBy) {
+        log.info("Get sort by film");
         return filmService.findAllFilmsOfDirectorSorted(directorId, sortBy);
     }
 
@@ -101,6 +108,7 @@ public class FilmController {
     @ResponseStatus(HttpStatus.OK)
     public Collection<Film> getCommonFilms(@RequestParam(value = "userId") Long userId,
                                            @RequestParam(value = "friendId") Long friendId) {
+        log.info("Get common films");
         return filmService.getCommonFilms(userId, friendId);
     }
 
@@ -110,6 +118,7 @@ public class FilmController {
             (@RequestParam(value = "count", defaultValue = "10", required = false) long count,
              @RequestParam Optional<Long> genreId,
              @RequestParam Optional<Integer> year) {
+        log.info("Get popular films");
         return filmService.getPopularFilmsOrderByGenreYear(genreId, year, count);
     }
 }

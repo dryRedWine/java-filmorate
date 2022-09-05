@@ -8,7 +8,6 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import java.util.Collection;
 
 @Service
-@Slf4j
 public class GenreService {
 
     private final GenreDaoImpl genreDao;

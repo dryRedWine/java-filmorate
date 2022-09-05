@@ -29,6 +29,7 @@ public class GenreController {
     @GetMapping()
     @ResponseStatus(HttpStatus.OK)
     public Collection<Genre> findAll() {
+        log.info("Get all genres");
         return genreService.findAll();
     }
 }

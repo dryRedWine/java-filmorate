@@ -15,7 +15,6 @@ import ru.yandex.practicum.filmorate.utility.CheckForId;
 import java.util.List;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
 public class ReviewService {
     private final ReviewDao reviewDao;
