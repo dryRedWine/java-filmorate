@@ -31,7 +31,7 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public Review save(Review review) {
         String sqlQuery = "INSERT INTO reviews (content, is_positive, user_id, film_id) " +
-                "VALUES (?, ?,(SELECT id FROM users WHERE id = ?), (SELECT id  FROM films WHERE id = ?))";
+                "VALUES (?, ?, ?, ?)";
         KeyHolder keyHolder = new GeneratedKeyHolder();
         try {
             jdbcTemplate.update(connection -> {
