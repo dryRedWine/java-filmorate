@@ -25,13 +25,10 @@ public class DirectorDaoImpl implements DirectorDao {
     private final JdbcTemplate jdbcTemplate;
     private final MpaDao mpaDao;
 
-    private final FilmDbStorage filmDbStorage;
-
     @Autowired
-    public DirectorDaoImpl(JdbcTemplate jdbcTemplate, MpaDao mpaDao, FilmDbStorage filmDbStorage) {
+    public DirectorDaoImpl(JdbcTemplate jdbcTemplate, MpaDao mpaDao) {
         this.jdbcTemplate = jdbcTemplate;
         this.mpaDao = mpaDao;
-        this.filmDbStorage = filmDbStorage;
     }
 
     @Override
@@ -69,9 +66,7 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public Director update(Director director) {
-        String sqlQuery = "update DIRECTORS set " +
-                "NAME = ? " +
-                "where ID = ?";
+        String sqlQuery = "update DIRECTORS set NAME = ? where ID = ?";
         jdbcTemplate.update(sqlQuery
                 , director.getName()
                 , director.getId());
@@ -97,22 +92,40 @@ public class DirectorDaoImpl implements DirectorDao {
 
     @Override
     public List<Film> getSortedFilmsByLikesOfDirector(long id) {
-        String sqlQuery = "SELECT COUNT(*) as RATING, f.ID, f.NAME, f.RELEASE_DATE, f.DESCRIPTION," +
-                " f.DURATION, m.ID, m.NAME " +
+        String sqlQuery = "SELECT f.ID," +
+                " f.NAME," +
+                " f.RELEASE_DATE," +
+                " f.DESCRIPTION," +
+                " f.DURATION," +
+                " m.ID," +
+                " m.NAME, " +
+                "COUNT(*) as RATING " +
                 "FROM LIKES l JOIN FILMS f ON l.FILM_ID = f.ID JOIN MPA m ON f.MPA_ID = m.ID" +
                 " WHERE f.ID IN (SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?)" +
-                " GROUP BY f.ID, f.NAME, f.RELEASE_DATE, f.DESCRIPTION, f.DURATION, m.ID, m.NAME" +
+                " GROUP BY f.ID," +
+                " f.NAME," +
+                " f.RELEASE_DATE," +
+                " f.DESCRIPTION," +
+                " f.DURATION," +
+                " m.ID," +
+                " m.NAME" +
                 " ORDER BY RATING";
         List<Film> sortedFilms = jdbcTemplate.query(sqlQuery, this::makeFilm, id);
 
         if (sortedFilms.isEmpty()) {
-            sqlQuery = "SELECT f.ID, f.NAME, f.RELEASE_DATE, f.DESCRIPTION, f.DURATION," +
-                    " m.ID, m.NAME  " +
-                    "FROM FILMS f JOIN MPA m ON f.MPA_ID = m.ID " +
-                    "WHERE f.ID IN (SELECT FILM_ID FROM FILM_DIRECTORS WHERE DIRECTOR_ID = ?) ";
+            sqlQuery = "SELECT f.ID, " +
+                    "f.NAME," +
+                    " f.RELEASE_DATE," +
+                    " f.DESCRIPTION," +
+                    " f.DURATION," +
+                    " m.ID, " +
+                    "m.NAME  " +
+                    "FROM FILMS f " +
+                    "INNER JOIN MPA m ON f.MPA_ID = m.ID " +
+                    "INNER JOIN FILM_DIRECTORS fd ON f.ID = fd.FILM_ID " +
+                    "WHERE fd.DIRECTOR_ID = ? ";
             sortedFilms = jdbcTemplate.query(sqlQuery, this::makeFilm, id);
         }
-
         return sortedFilms;
     }
 

@@ -87,10 +87,10 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public List<Review> getAll() {
         final String sqlQuery = "SELECT r.*, " +
-                "rr.rate useful " +
+                "rr.rate AS useful " +
                 "FROM reviews r " +
                 "LEFT JOIN review_rate rr ON r.id = rr.review_id " +
-                "GROUP BY r.id " +
+                "GROUP BY r.id, useful " +
                 "ORDER BY useful DESC";
         return jdbcTemplate.query(sqlQuery, this::makeReview);
     }
@@ -98,11 +98,11 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public List<Review> getAllByFilmId(int filmId) {
         final String sqlQuery = "SELECT r.*, " +
-                "rr.rate useful " +
+                "rr.rate AS useful " +
                 "FROM reviews r " +
                 "LEFT JOIN review_rate rr ON r.id = rr.review_id " +
                 "WHERE r.film_id = ? " +
-                "GROUP BY r.id " +
+                "GROUP BY r.id, useful " +
                 "ORDER BY useful DESC";
 
         return jdbcTemplate.query(sqlQuery, this::makeReview, filmId);
@@ -111,10 +111,10 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public List<Review> getByCount(int count) {
         final String sqlQuery = "SELECT r.*, " +
-                "rr.rate useful " +
+                "rr.rate AS useful " +
                 "FROM reviews r " +
                 "LEFT JOIN review_rate rr ON r.id = rr.review_id " +
-                "GROUP BY r.id " +
+                "GROUP BY r.id, useful " +
                 "ORDER BY useful DESC " +
                 "LIMIT ?";
         return jdbcTemplate.query(sqlQuery, this::makeReview, count);
@@ -123,11 +123,11 @@ public class ReviewDaoImpl implements ReviewDao {
     @Override
     public List<Review> getByFilmIdAndCount(int filmId, int count) {
         final String sqlQuery = "SELECT r.*, " +
-                "rr.rate useful " +
+                "rr.rate AS useful " +
                 "FROM reviews r " +
                 "LEFT JOIN review_rate rr ON r.id = rr.review_id " +
                 "WHERE r.film_id = ? " +
-                "GROUP BY r.id " +
+                "GROUP BY r.id, useful " +
                 "ORDER BY useful DESC " +
                 "LIMIT ?";
         return jdbcTemplate.query(sqlQuery, this::makeReview, filmId, count);

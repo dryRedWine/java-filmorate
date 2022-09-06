@@ -165,28 +165,15 @@ public class FilmDbStorage implements FilmStorage {
                 .collect(Collectors.toList());
     }
 
+
+    // Честно говоря, сам не понял, зачем тут такой сложный метод был нужен
     @Override
     public List<Film> getCommonFilms(long userId, long friendId) {
-        String sqlQuery = "SELECT DISTINCT f.id,\n" +
-                "                f.name,\n" +
-                "                f.description,\n" +
-                "                f.release_date,\n" +
-                "                f.duration,\n" +
-                "                COUNT(l.film_id),\n" +
-                "                f.mpa_id,\n" +
-                "                m.name \n" +
-                "FROM films AS f\n" +
-                "         LEFT JOIN mpa AS m on M.id = F.mpa_id\n" +
-                "         LEFT JOIN likes AS l on f.id = l.film_id\n" +
-                "         LEFT JOIN film_genre AS fg on f.id = fg.film_id\n" +
-                "         LEFT JOIN genres g on fg.genre_id = g.id\n" +
-                "WHERE f.id IN (SELECT l_user.film_id\n" +
+        String sqlQuery = "SELECT l_user.film_id\n" +
                 "               FROM likes AS l_user\n" +
                 "               JOIN likes AS l_frend on l_frend.film_id =l_user.film_id\n" +
                 "               WHERE l_user.user_id = ?\n" +
-                "               AND l_frend.user_id = ?)\n" +
-                "GROUP BY f.id, fg.genre_id\n" +
-                "ORDER BY COUNT(l.film_id) DESC;";
+                "               AND l_frend.user_id = ?";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, userId, friendId);
         return commonFilms.stream()
                 .map(this::getFilmById)
@@ -214,7 +201,7 @@ public class FilmDbStorage implements FilmStorage {
     public List<Film> searchFilmsByDirector(String query) {
         log.info("log перед выполнением запроса к бд");
         // Не забыть про пробелы!
-        String sql = "SELECT DISTINCT fd.FIlM_ID       AS id, " +
+        String sql = "SELECT DISTINCT fd.FIlM_ID AS id, " +
                 "                COUNT(l.USER_ID) AS count_likes " +
                 "FROM directors AS d\n" +
                 "         LEFT OUTER JOIN film_directors AS fd ON d.ID = fd.director_id\n" +
@@ -255,25 +242,20 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilmsOrderByGenreYear(Optional<Long> genreId, Optional<Integer> year, long count) {
         String sqlQuery = "SELECT DISTINCT f.id,\n" +
-                "                f.name,\n" +
-                "                f.description,\n" +
-                "                f.release_date,\n" +
-                "                f.duration,\n" +
-                "                COUNT(l.film_id),\n" +
-                "                f.mpa_id,\n" +
-                "                m.name\n" +
-                "FROM films AS f\n" +
-                "         LEFT JOIN mpa AS m ON m.id = f.mpa_id\n" +
-                "         LEFT JOIN likes L on F.ID = l.film_id\n" +
+                "                COUNT(l.film_id) \n" +
+                "FROM films AS f \n" +
+                "         LEFT JOIN likes l on f.ID = l.film_id\n" +
                 "         LEFT JOIN film_genre AS fg ON f.id = fg.film_id\n" +
                 "         LEFT JOIN genres AS g ON fg.genre_id = g.id\n" +
-                "         LEFT JOIN film_directors fd on f.id = fd.film_id\n" +
-                "         LEFT JOIN directors AS d ON fd.director_id = d.id\n" +
-                "WHERE fg.genre_id = ? AND YEAR (f.release_date) = ?\n" +
-                "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
+                "WHERE fg.genre_id = ? AND EXTRACT(YEAR FROM f.release_date) = ? \n" +
+                "GROUP BY f.id \n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
                 "LIMIT ?";
-        List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), year.get(), count);
+        List<Long> commonFilms = null;
+        if (genreId.isPresent() && year.isPresent())
+            commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), year.get(), count);
+        else
+            throw new NullPointerException("Переданы пустые id");
         return commonFilms.stream()
                 .map(this::getFilmById)
                 .collect(Collectors.toList());
@@ -282,22 +264,13 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilmsOrderByGenre(Optional<Long> genreId, long count) {
         String sqlQuery = "SELECT DISTINCT f.id,\n" +
-                "                f.name,\n" +
-                "                f.description,\n" +
-                "                f.release_date,\n" +
-                "                f.duration,\n" +
-                "                COUNT(l.film_id),\n" +
-                "                f.mpa_id,\n" +
-                "                m.name\n" +
+                "                COUNT(l.film_id) \n" +
                 "FROM films AS f\n" +
-                "         LEFT JOIN mpa AS m ON m.id = f.mpa_id\n" +
-                "         LEFT JOIN likes L on F.ID = l.film_id\n" +
+                "         LEFT JOIN likes l on f.ID = l.film_id\n" +
                 "         LEFT JOIN film_genre AS fg ON f.id = fg.film_id\n" +
                 "         LEFT JOIN genres AS g ON fg.genre_id = g.id\n" +
-                "         LEFT JOIN film_directors fd on f.id = fd.film_id\n" +
-                "         LEFT JOIN directors AS d ON fd.director_id = d.id\n" +
-                "WHERE fg.genre_id = ?\n" +
-                "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
+                "WHERE fg.genre_id = ? \n" +
+                "GROUP BY f.id \n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
                 "LIMIT ?";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, genreId.get(), count);
@@ -309,22 +282,13 @@ public class FilmDbStorage implements FilmStorage {
     @Override
     public List<Film> getPopularFilmsOrderByYear(Optional<Integer> year, long count) {
         String sqlQuery = "SELECT DISTINCT f.id,\n" +
-                "                f.name,\n" +
-                "                f.description,\n" +
-                "                f.release_date,\n" +
-                "                f.duration,\n" +
-                "                COUNT(l.film_id),\n" +
-                "                f.mpa_id,\n" +
-                "                m.name\n" +
+                "                COUNT(l.film_id) \n" +
                 "FROM films AS f\n" +
-                "         LEFT JOIN mpa AS m ON m.id = f.mpa_id\n" +
                 "         LEFT JOIN likes L on F.ID = l.film_id\n" +
                 "         LEFT JOIN film_genre AS fg ON f.id = fg.film_id\n" +
                 "         LEFT JOIN genres AS g ON fg.genre_id = g.id\n" +
-                "         LEFT JOIN film_directors fd on f.id = fd.film_id\n" +
-                "         LEFT JOIN directors AS d ON fd.director_id = d.id\n" +
-                "WHERE YEAR (f.release_date) = ?\n" +
-                "GROUP BY f.id, fg.genre_id, fd.director_id\n" +
+                "WHERE EXTRACT(YEAR FROM f.release_date) = ?\n" +
+                "GROUP BY f.id \n" +
                 "ORDER BY COUNT(l.film_id) DESC \n" +
                 "LIMIT  ?";
         List<Long> commonFilms = jdbcTemplate.query(sqlQuery, this::makeFilmId, year.get(), count);
