@@ -19,11 +19,6 @@ import java.util.Objects;
 @Builder
 @NoArgsConstructor
 public class User {
-
-    // Видимо из-за того, что мы еще не проходили данную аннотацию, в тестах возвращается код 500,
-    // а в случае с данной аннотацией должен возвращаться 400.
-    // Но, к счастью, в других тестах есть и 400, и 500))))
-//    @Positive(message = "id can be only positive")
     private Long id;
 
     private String name;
