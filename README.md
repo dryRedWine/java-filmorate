@@ -21,6 +21,7 @@
 
 ## Authors
 
+- https://github.com/DDDimbo
 - https://github.com/VLs125
 - https://github.com/AnshakovNikita
 - https://github.com/skyJetBrain
