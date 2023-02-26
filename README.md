@@ -1,6 +1,7 @@
 # Java Filmorate
 
 [![N|Solid](https://cldup.com/dTxpPi9lDf.thumb.png)](https://nodesource.com/products/nsolid)
+<a href="https://www.java.com" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/java/java-original.svg" alt="java" width="40" height="40"/> </a>  <a href="https://www.postgresql.org" target="_blank" rel="noreferrer"> <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/postgresql/postgresql-original-wordmark.svg" alt="postgresql" width="40" height="40"/> </a> <a href="https://postman.com" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/getpostman/getpostman-icon.svg" alt="postman" width="40" height="40"/> </a> <a href="https://spring.io/" target="_blank" rel="noreferrer"> <img src="https://www.vectorlogo.zone/logos/springio/springio-icon.svg" alt="spring" width="40" height="40"/> </a>
 
 <p align="justify">Filmorate - это приложение для размещения и просмотра фильмов, площадкой для общения и взаимодействия пользователей.</p>
 
@@ -13,16 +14,14 @@
 
 ## Стек технологий
 
-<p align="justify">Java, Spring, Spring Boot, Maven, Lombook, PostgreSQL, Docker, Hibernate, QueryDSL, WebClient.</p>
+<p align="justify">Java, Spring, Spring Boot, Maven, Lombook, JDBC, PostgreSQL.</p>
 
 ## База данных
+![image](https://user-images.githubusercontent.com/92802270/221441426-32fdf3d9-a687-47d6-a9b7-8459843de65f.png)
 
-<h4> Основной сервис: </h4> 
+## Authors
 
-
-![2023-02-24_22-06-25](https://user-images.githubusercontent.com/92802270/221269596-fecaa943-ab14-4494-a2e6-e55e58ea6cbd.png)
-
-<h4> Сервис статистики: </h4>
-
-
-![image](https://user-images.githubusercontent.com/92802270/221270128-03c85291-3447-41a4-a3ce-5a79b7b4f5af.png)
+- https://github.com/VLs125
+- https://github.com/AnshakovNikita
+- https://github.com/skyJetBrain
+- https://github.com/ACKAPOB
